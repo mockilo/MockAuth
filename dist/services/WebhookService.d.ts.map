@@ -1,0 +1,1 @@
+{"version":3,"file":"WebhookService.d.ts","sourceRoot":"","sources":["../../src/services/WebhookService.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAgB,MAAM,UAAU,CAAC;AAEvD,wBAAgB,oBAAoB,CAAC,MAAM,CAAC,EAAE,aAAa;oBAMjC,MAAM,QAAQ,GAAG,GAAG,OAAO,CAAC,IAAI,CAAC;SAyB1D"}
