@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRoleRoutes = createRoleRoutes;
+exports.createRoleRoutes = void 0;
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 function createRoleRoutes(userService, authService, webhookService, auditService) {
@@ -368,4 +368,5 @@ function createRoleRoutes(userService, authService, webhookService, auditService
     }));
     return router;
 }
+exports.createRoleRoutes = createRoleRoutes;
 //# sourceMappingURL=roles.js.map

@@ -1,8 +1,9 @@
-# MockAuth - Developer Authentication Simulator
+# MockAuth
 
 [![npm version](https://badge.fury.io/js/mockauth.svg)](https://badge.fury.io/js/mockauth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Build Status](https://github.com/mockauth/mockauth/workflows/CI/badge.svg)](https://github.com/mockauth/mockauth/actions)
 
 > **MockAuth** is a developer-first authentication simulator designed for development, testing, and staging environments. It provides realistic authentication and authorization flows, allowing developers and QA teams to test, prototype, and debug applications safely without relying on production authentication systems.
 
@@ -10,8 +11,6 @@
 
 ```bash
 npm install mockauth
-# or
-yarn add mockauth
 ```
 
 ```javascript
@@ -19,11 +18,12 @@ import { MockAuth } from 'mockauth';
 
 const auth = new MockAuth({
   port: 3001,
+  jwtSecret: 'your-secret-key',
   users: [
     {
-      id: 'user-1',
-      email: 'john@example.com',
-      username: 'john_doe',
+      email: 'admin@example.com',
+      username: 'admin',
+      password: 'admin123',
       roles: ['admin'],
       permissions: ['read:users', 'write:users']
     }
@@ -31,48 +31,45 @@ const auth = new MockAuth({
 });
 
 await auth.start();
+console.log('MockAuth server running on http://localhost:3001');
 ```
 
-## ✨ Key Features
+## ✨ Features
 
-### 🔐 Mock User Management
-- Dynamic creation, editing, and deletion of mock users
-- Rich user attributes: email, username, profile data, roles, permissions, custom metadata
-- User groups and multi-user simulation for complex hierarchies
-- Multiple simultaneous user sessions for realistic scenarios
+### 🔐 **Complete Authentication Simulation**
+- **Login/Logout** with JWT tokens
+- **User Registration** and management
+- **Token Refresh** and verification
+- **Role-Based Access Control (RBAC)**
 
-### 🔑 Authentication Flow Simulation
-- Complete simulation of login, signup, logout, password reset, and token refresh
-- Configurable error states (invalid credentials, locked accounts, expired tokens)
-- Optional multi-factor authentication (MFA) simulation
-- Edge-case testing for account recovery and verification flows
+### 🛡️ **Advanced Security Features**
+- **Multi-Factor Authentication (MFA)** with TOTP
+- **Password Reset** flow with secure tokens
+- **Account Lockout** protection
+- **Session Management** with multi-device tracking
 
-### 👥 Role-Based Access Control (RBAC)
-- Granular roles and permissions for APIs, routes, or features
-- Test protected endpoints and UI access dynamically
-- Simulate restricted or escalated access safely
-- Seamless integration with frontend and backend frameworks
+### 🎯 **Developer Experience**
+- **TypeScript** support with full type definitions
+- **REST API** with comprehensive documentation
+- **Integration Examples** for popular frameworks
+- **Testing Utilities** for Jest, Cypress, Playwright
 
-### 🎫 Token & Session Handling
-- Generate mock JWT, session tokens, or API keys
-- Token expiration, renewal, revocation, and multi-device sessions
-- Realistic session lifecycle for robust testing
+### 🏗️ **Production Ready**
+- **Error Handling** and validation
+- **Rate Limiting** and security headers
+- **Health Checks** and monitoring
+- **Docker** support
 
-### 🛠️ Developer-Friendly API
-- Programmatic API for creating/updating users, roles, and tokens
-- Works with React, Vue, Angular, Node.js, Django, Rails
-- Easy integration with Jest, Cypress, Playwright test suites
-- CI/CD pipeline ready
+## 📖 Documentation
 
-### 🔒 Security & Isolation
-- Operates entirely in dev/staging environments
-- No sensitive user data required
-- Safe for QA pipelines and sandboxed environments
-- Complete isolation from production systems
+- [Getting Started Guide](./docs/getting-started.md)
+- [API Reference](./docs/api-reference.md)
+- [Integration Examples](./docs/examples.md)
+- [Technical Specifications](./docs/technical-specs.md)
 
 ## 🎯 Use Cases
 
-### Frontend Development
+### **Frontend Development**
 ```javascript
 // Simulate different user states
 const user = await auth.login('john@example.com', 'password');
@@ -84,18 +81,15 @@ if (user.hasRole('admin')) {
 }
 ```
 
-### Backend Development
+### **Backend Development**
 ```javascript
 // Validate protected endpoints
 app.get('/api/users', auth.requireRole('admin'), (req, res) => {
   res.json(users);
 });
-
-// Test token expiry scenarios
-const expiredToken = auth.createToken(user, { expiresIn: '1ms' });
 ```
 
-### QA & Testing
+### **QA & Testing**
 ```javascript
 // Automated testing with multiple scenarios
 describe('User Authentication', () => {
@@ -114,61 +108,154 @@ describe('User Authentication', () => {
 });
 ```
 
-## 📖 Documentation
+## 🌐 Ecosystem
 
-- [Getting Started Guide](./docs/getting-started.md)
-- [API Reference](./docs/api-reference.md)
-- [Integration Examples](./docs/examples.md)
-- [Workflow Diagrams](./docs/workflows.md)
-- [Technical Specifications](./docs/technical-specs.md)
+MockAuth is part of the **Mockilo** developer ecosystem:
 
-## 🔄 Workflow Example
-
-```
-[Developer] → [MockAuth API] → [Frontend App] → [Backend API]
-     ↓              ↓              ↓              ↓
-Define Users    Consume Mock    Validate      Logs &
-Roles & Perms   Tokens &        Tokens &      Metrics
-                Sessions        RBAC
-```
-
-## 🌐 Ecosystem Positioning
-
-MockAuth is part of the complete developer sandbox ecosystem:
-
-- **Mocktail** → Prisma-aware mock data generator
+- **MockTail** → Prisma-aware mock data generator
 - **SchemaGhost** → Fake API server simulating backend endpoints  
 - **MockAuth** → Fake authentication layer for secure, realistic user flows
 
 Together, these tools provide a complete sandbox for developers, enabling end-to-end testing, prototyping, and QA without touching production systems.
 
-## 🚀 Advanced Features
+## 🚀 Getting Started
 
-- **Configurable Auth Policies**: Password rules, MFA, account lockout policies
-- **Multi-Tenant Simulation**: Test SaaS apps with multiple tenants and user hierarchies
-- **Analytics & Audit Logs**: Track user behavior and test results
-- **CI/CD Integration**: Automate authentication testing in pipelines
-- **Pluggable OAuth/SSO Providers**: Simulate social logins and enterprise SSO flows
+### **Installation**
+```bash
+npm install mockauth
+```
 
-## 🎯 Mission Statement
+### **Basic Setup**
+```javascript
+import { MockAuth } from 'mockauth';
 
-To empower developers and QA teams by providing a safe, fast, and realistic authentication simulation, reducing development friction, accelerating prototyping, and ensuring robust testing before production deployment.
+const auth = new MockAuth({
+  port: 3001,
+  jwtSecret: 'your-secret-key',
+  users: [
+    {
+      email: 'admin@example.com',
+      username: 'admin',
+      password: 'admin123',
+      roles: ['admin'],
+      permissions: ['read:users', 'write:users']
+    }
+  ]
+});
 
-## 📋 Technical Specifications
+await auth.start();
+```
 
-- **API Type**: REST / GraphQL
-- **Token Types**: JWT, Session Tokens, API Keys
-- **Environment**: Local, Dev, Staging
-- **Programming Support**: Node.js, Python, Ruby, PHP, JS Frontend Frameworks
-- **Testing Integration**: Jest, Cypress, Playwright, Selenium
+### **API Usage**
+```javascript
+// Login
+const response = await fetch('http://localhost:3001/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: 'admin@example.com',
+    password: 'admin123'
+  })
+});
+
+const { data } = await response.json();
+console.log('User:', data.user);
+console.log('Token:', data.token);
+```
+
+## 📊 API Endpoints
+
+### **Authentication**
+- `POST /auth/login` - Login user
+- `POST /auth/register` - Register new user
+- `POST /auth/logout` - Logout user
+- `POST /auth/refresh` - Refresh token
+- `GET /auth/me` - Get current user
+
+### **Multi-Factor Authentication**
+- `POST /auth/mfa/setup` - Setup MFA
+- `POST /auth/mfa/verify` - Verify MFA code
+- `DELETE /auth/mfa/disable` - Disable MFA
+- `GET /auth/mfa/status` - Get MFA status
+
+### **Password Reset**
+- `POST /auth/password-reset/request` - Request password reset
+- `POST /auth/password-reset/verify` - Verify reset token
+- `POST /auth/password-reset/complete` - Complete password reset
+
+### **User Management**
+- `GET /users` - Get all users (admin)
+- `GET /users/:id` - Get user by ID
+- `POST /users` - Create user (admin)
+- `PUT /users/:id` - Update user
+- `DELETE /users/:id` - Delete user (admin)
+
+## 🔧 Configuration
+
+```javascript
+const auth = new MockAuth({
+  // Server configuration
+  port: 3001,
+  baseUrl: 'http://localhost:3001',
+  host: 'localhost',
+  
+  // Authentication settings
+  jwtSecret: 'your-secret-key',
+  tokenExpiry: '24h',
+  refreshTokenExpiry: '7d',
+  
+  // Security settings
+  maxLoginAttempts: 5,
+  lockoutDuration: '15m',
+  enableMFA: true,
+  enablePasswordReset: true,
+  
+  // Logging
+  logLevel: 'info',
+  enableAuditLog: true
+});
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run linter
+npm run lint
+
+# Build project
+npm run build
+```
+
+## 📦 Examples
+
+Check out the [examples](./examples/) directory for integration examples:
+
+- [React](./examples/react/) - React integration with hooks
+- [Vue.js](./examples/vue/) - Vue.js integration with Vuex
+- [Angular](./examples/angular/) - Angular integration with services
+- [Express.js](./examples/express/) - Express.js middleware integration
+- [Cypress](./examples/cypress/) - E2E testing with Cypress
+- [Playwright](./examples/playwright/) - E2E testing with Playwright
 
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## 🔗 Links
 
@@ -176,3 +263,13 @@ MIT License - see [LICENSE](./LICENSE) for details.
 - [GitHub Repository](https://github.com/mockauth/mockauth)
 - [NPM Package](https://www.npmjs.com/package/mockauth)
 - [Discord Community](https://discord.gg/mockauth)
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ by the MockAuth team
+- Inspired by the need for better authentication testing tools
+- Part of the Mockilo developer ecosystem
+
+---
+
+**Made with ❤️ for developers who need realistic authentication testing**

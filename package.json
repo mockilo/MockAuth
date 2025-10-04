@@ -104,23 +104,7 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "typedoc": "^0.25.4",
-    "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "@angular/core": ">=12.0.0",
-    "react": ">=16.8.0",
-    "vue": ">=2.6.0 || >=3.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "vue": {
-      "optional": true
-    },
-    "@angular/core": {
-      "optional": true
-    }
+    "typescript": "^5.4.5"
   },
   "jest": {
     "preset": "ts-jest",
@@ -168,5 +152,6 @@
     "singleQuote": true,
     "printWidth": 80,
     "tabWidth": 2
-  }
+  },
+  "readme": "NPM_README.md"
 }

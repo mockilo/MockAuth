@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAuthRoutes = createAuthRoutes;
+exports.createAuthRoutes = void 0;
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 function createAuthRoutes(authService, userService, webhookService, auditService) {
@@ -241,9 +241,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Get current user endpoint
     router.get('/me', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _b;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -271,9 +271,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Verify token endpoint
     router.post('/verify', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _c;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_c = req.headers.authorization) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -301,9 +301,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Get user sessions endpoint
     router.get('/sessions', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _d;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_d = req.headers.authorization) === null || _d === void 0 ? void 0 : _d.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -332,9 +332,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Revoke session endpoint
     router.delete('/sessions/:sessionId', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _e;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_e = req.headers.authorization) === null || _e === void 0 ? void 0 : _e.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -373,9 +373,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     // MFA Routes
     // Setup MFA
     router.post('/mfa/setup', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _f;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_f = req.headers.authorization) === null || _f === void 0 ? void 0 : _f.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -407,7 +407,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         (0, express_validator_1.body)('code').isLength({ min: 6, max: 6 }),
         (0, express_validator_1.body)('backupCode').optional().isLength({ min: 8, max: 8 }),
     ], (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _g;
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -417,7 +417,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                     details: errors.array(),
                 });
             }
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_g = req.headers.authorization) === null || _g === void 0 ? void 0 : _g.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -451,7 +451,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         (0, express_validator_1.body)('code').isLength({ min: 6, max: 6 }),
         (0, express_validator_1.body)('backupCode').optional().isLength({ min: 8, max: 8 }),
     ], (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _h;
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -461,7 +461,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                     details: errors.array(),
                 });
             }
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_h = req.headers.authorization) === null || _h === void 0 ? void 0 : _h.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -492,9 +492,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Disable MFA
     router.delete('/mfa/disable', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _j;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_j = req.headers.authorization) === null || _j === void 0 ? void 0 : _j.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -523,9 +523,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Get MFA status
     router.get('/mfa/status', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _k;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_k = req.headers.authorization) === null || _k === void 0 ? void 0 : _k.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -554,9 +554,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Regenerate backup codes
     router.post('/mfa/backup-codes/regenerate', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _l;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_l = req.headers.authorization) === null || _l === void 0 ? void 0 : _l.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -671,4 +671,5 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     return router;
 }
+exports.createAuthRoutes = createAuthRoutes;
 //# sourceMappingURL=auth.js.map

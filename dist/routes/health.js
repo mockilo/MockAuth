@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createHealthRoutes = createHealthRoutes;
+exports.createHealthRoutes = void 0;
 const express_1 = require("express");
 function createHealthRoutes() {
     const router = (0, express_1.Router)();
@@ -83,4 +83,5 @@ function createHealthRoutes() {
     });
     return router;
 }
+exports.createHealthRoutes = createHealthRoutes;
 //# sourceMappingURL=health.js.map

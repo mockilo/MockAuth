@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserRoutes = createUserRoutes;
+exports.createUserRoutes = void 0;
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 function createUserRoutes(userService, authService, webhookService, auditService) {
@@ -62,9 +62,9 @@ function createUserRoutes(userService, authService, webhookService, auditService
     });
     // Middleware to verify user access (own profile or admin)
     const requireUserAccess = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _b;
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
@@ -375,4 +375,5 @@ function createUserRoutes(userService, authService, webhookService, auditService
     }));
     return router;
 }
+exports.createUserRoutes = createUserRoutes;
 //# sourceMappingURL=users.js.map

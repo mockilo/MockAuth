@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAuditService = createAuditService;
+exports.createAuditService = void 0;
 const uuid_1 = require("uuid");
 function createAuditService(enabled = false) {
     if (!enabled) {
@@ -93,4 +93,5 @@ function createAuditService(enabled = false) {
         },
     };
 }
+exports.createAuditService = createAuditService;
 //# sourceMappingURL=AuditService.js.map
