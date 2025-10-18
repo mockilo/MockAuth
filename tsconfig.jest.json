@@ -5,6 +5,7 @@
     "target": "es2019",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "isolatedModules": true
   }
 }
