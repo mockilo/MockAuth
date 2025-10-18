@@ -124,7 +124,7 @@
     "typescript": "^5.4.5",
     "vue": "^3.5.22",
     "@testing-library/jest-dom": "^6.0.0",
-    "babel-jest": "^29.7.0"
+    "identity-obj-proxy": "^3.0.0"
   },
   "peerDependencies": {
     "@angular/common": ">=15.0.0",
@@ -134,44 +134,6 @@
     "react": ">=16.8.0",
     "rxjs": ">=7.0.0",
     "vue": ">=3.0.0"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "jsdom",
-    "roots": [
-      "<rootDir>/src",
-      "<rootDir>/tests"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.ts",
-      "**/?(*.)+(spec|test).ts"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.d.ts",
-      "!src/index.ts"
-    ],
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ],
-    "testTimeout": 10000,
-    "transform": {
-      "^.+\\.(ts|tsx)$": "ts-jest",
-      "^.+\\.(js|jsx)$": "babel-jest"
-    },
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
-    "transformIgnorePatterns": [
-      "node_modules/(?!(.*\\.mjs$))"
-    ],
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.ts"],
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json"
-      }
-    }
   },
   "eslintConfig": {
     "extends": [

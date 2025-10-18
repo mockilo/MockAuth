@@ -1,4 +1,10 @@
-import '@testing-library/jest-dom';
+// jest/jest.setup.ts
+// Angular setup
+import 'jest-preset-angular/setup-jest';
+
+// any global mocks used by your test suites:
+Object.defineProperty(window, 'CSS', { value: null });
+(global as any).Intl = require('intl'); // if needed
 
 // Mock localStorage
 const localStorageMock = {
