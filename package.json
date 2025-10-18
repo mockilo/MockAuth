@@ -1,6 +1,6 @@
 {
-  "name": "mockauth",
-  "version": "1.2.0",
+  "name": "@mockilo/mockauth",
+  "version": "1.0.0-beta.2",
   "description": "Developer-first authentication simulator for development, testing, and staging environments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:integration": "jest --testPathPattern=integration",
-    "lint": "echo 'Linting disabled for CI'",
+    "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "builder": "node src/web-builder/server.js",
@@ -24,76 +24,55 @@
   },
   "keywords": [
     "authentication",
-    "auth",
-    "jwt",
-    "express",
-    "typescript",
-    "react",
-    "angular",
-    "vue",
-    "cli",
     "mock",
     "testing",
     "development",
-    "migration",
-    "better-auth",
-    "clerk",
-    "auth0",
-    "firebase",
-    "supabase",
+    "jwt",
     "rbac",
     "oauth",
     "sso",
     "simulator",
-    "developer-tools",
-    "30-second-setup",
-    "free-auth"
+    "fake",
+    "staging",
+    "qa",
+    "cypress",
+    "playwright",
+    "jest",
+    "mockilo",
+    "ecosystem",
+    "developer-tools"
   ],
-  "author": "kilopal",
+  "author": "MockAuth Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mockilo/mockauth.git"
+    "url": "https://github.com/mockauth/mockauth.git"
   },
   "bugs": {
-    "url": "https://github.com/mockilo/mockauth/issues"
+    "url": "https://github.com/mockauth/mockauth/issues"
   },
   "homepage": "https://mockauth.dev",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/sponsors/mockilo"
-  },
   "files": [
     "dist",
     "README.md",
     "LICENSE",
-    "SECURITY.md",
-    "env.example"
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "dependencies": {
     "@types/pg": "^8.15.5",
     "@types/sqlite3": "^3.1.11",
     "bcryptjs": "^2.4.3",
-    "boxen": "^5.1.2",
-    "chalk": "^4.1.2",
-    "cli-progress": "^3.12.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.1",
     "express-validator": "^7.2.1",
-    "figlet": "^1.9.3",
-    "gradient-string": "^3.0.0",
     "helmet": "^7.2.0",
-    "inquirer": "^8.2.6",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
@@ -107,12 +86,9 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/boxen": "^3.0.5",
-    "@types/chalk": "^2.2.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.23",
-    "@types/inquirer": "^8.2.10",
     "@types/jest": "^29.5.8",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
@@ -170,7 +146,32 @@
       "lcov",
       "html"
     ],
-    "testTimeout": 10000
+    "testTimeout": 10000,
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest",
+      ".*\\.(vue)$": "vue-jest"
+    },
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "vue"],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.*\\.mjs$))"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "@typescript-eslint/recommended",
+      "prettier"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/explicit-function-return-type": "warn",
+      "@typescript-eslint/no-explicit-any": "warn"
+    }
   },
   "prettier": {
     "semi": true,
@@ -179,5 +180,9 @@
     "printWidth": 80,
     "tabWidth": 2
   },
-  "readme": "README.md"
+  "readme": "README.md",
+  "publishConfig": {
+    "access": "public"
+  }
 }
+

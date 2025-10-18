@@ -15,6 +15,12 @@ describe('User Routes', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
+    
+    // Mock authentication middleware to bypass auth
+    app.use((req, res, next) => {
+      req.user = { id: '1', email: 'test@example.com' };
+      next();
+    });
 
     // Mock services
     mockUserService = {

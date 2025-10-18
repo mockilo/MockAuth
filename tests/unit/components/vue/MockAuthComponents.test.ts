@@ -1,7 +1,6 @@
-// Temporarily disabled due to missing dependencies
-// import { mount, VueWrapper } from '@vue/test-utils';
-// import { describe, it, expect, beforeEach, vi } from 'vitest';
-// import MockAuthComponents from '../../../src/components/vue/MockAuthComponents.vue';
+import { mount, VueWrapper } from '@vue/test-utils';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import MockAuthComponents from '../../../src/components/vue/MockAuthComponents.vue';
 
 // Mock the composable
 vi.mock('../../../src/components/vue/useMockAuth', () => ({
@@ -15,7 +14,7 @@ vi.mock('../../../src/components/vue/useMockAuth', () => ({
   }),
 }));
 
-describe.skip('MockAuthComponents', () => {
+describe('MockAuthComponents', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
