@@ -51,7 +51,13 @@ function checkForTodos() {
   const todoRegex = /(?:TODO|FIXME|HACK|XXX|BUG):/gi;
   
   try {
-    const result = execSync(`grep -r "${todoRegex.source}" ${srcDir} --include="*.ts" --include="*.js" || true`, { encoding: 'utf8' });
+    // Use findstr on Windows, grep on Unix
+    const isWindows = process.platform === 'win32';
+    const command = isWindows 
+      ? `findstr /r /s /i "TODO FIXME HACK XXX BUG" ${srcDir}\\*.ts ${srcDir}\\*.js 2>nul || echo.`
+      : `grep -r "${todoRegex.source}" ${srcDir} --include="*.ts" --include="*.js" || true`;
+    
+    const result = execSync(command, { encoding: 'utf8' });
     if (result.trim()) {
       console.warn('⚠️  Found TODO/FIXME comments in code:');
       console.warn(result);

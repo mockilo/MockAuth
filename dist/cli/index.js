@@ -649,7 +649,7 @@ USAGE:
 
 📚 NEED HELP?
   Documentation:  https://mockauth.dev/docs
-  GitHub Issues:  https://github.com/mockilo/mockauth
+  GitHub Issues:  https://github.com/mockauth/mockauth
   Discord:        https://discord.gg/mockauth
 
 💡 Tip: Run mockauth <command> --help for detailed info about a specific command
