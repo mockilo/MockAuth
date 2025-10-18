@@ -94,6 +94,7 @@ describe('User Routes', () => {
 
       const response = await request(app)
         .get('/users')
+        .set('Authorization', 'Bearer test-token')
         .expect(200);
 
       expect(response.body.success).toBe(true);
@@ -107,6 +108,7 @@ describe('User Routes', () => {
 
       const response = await request(app)
         .get('/users')
+        .set('Authorization', 'Bearer test-token')
         .expect(200);
 
       expect(response.body.success).toBe(true);

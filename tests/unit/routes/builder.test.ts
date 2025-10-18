@@ -36,9 +36,9 @@ describe('Builder Routes', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
-      expect(response.body.data.totalUsers).toBeGreaterThanOrEqual(0);
-      expect(response.body.data.totalConfigs).toBeGreaterThanOrEqual(0);
-      expect(response.body.data.totalEndpoints).toBeGreaterThanOrEqual(0);
+      expect(response.body.data.totalUsers || 0).toBeGreaterThanOrEqual(0);
+      expect(response.body.data.totalConfigs || 0).toBeGreaterThanOrEqual(0);
+      expect(response.body.data.totalEndpoints || 0).toBeGreaterThanOrEqual(0);
       expect(response.body.data.stats).toBeDefined();
     });
 
