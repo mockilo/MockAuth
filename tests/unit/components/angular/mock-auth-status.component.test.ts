@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MockAuthStatusComponent } from '../../../src/components/angular/components/mock-auth-status.component';
 
-describe.skip('MockAuthStatusComponent', () => {
+describe('MockAuthStatusComponent', () => {
   let component: MockAuthStatusComponent;
   let fixture: ComponentFixture<MockAuthStatusComponent>;
 

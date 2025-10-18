@@ -19,6 +19,7 @@ describe('User Routes', () => {
     // Mock authentication middleware to bypass auth
     app.use((req, res, next) => {
       req.user = { id: '1', email: 'test@example.com' };
+      req.isAuthenticated = () => true;
       next();
     });
 
