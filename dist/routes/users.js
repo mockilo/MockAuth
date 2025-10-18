@@ -152,10 +152,67 @@ function createUserRoutes(userService, authService, webhookService, auditService
             });
         }
     }));
+    // Get user stats (admin only) - MUST come before /:id route
+    router.get('/stats', requireAdmin, (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const stats = yield userService.getUserStats();
+            res.json({
+                success: true,
+                data: stats,
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                success: false,
+                error: 'Failed to get user stats',
+            });
+        }
+    }));
+    // Search users (admin only) - MUST come before /:id route
+    router.get('/search', requireAdmin, [
+        (0, express_validator_1.query)('q').isString().isLength({ min: 1 }),
+        (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }),
+    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            const errors = (0, express_validator_1.validationResult)(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Validation failed',
+                    details: errors.array(),
+                });
+            }
+            const query = req.query.q;
+            const limit = parseInt(req.query.limit) || 10;
+            const users = yield userService.searchUsers(query, limit);
+            // Remove passwords from response
+            const sanitizedUsers = users.map((user) => {
+                const { password } = user, sanitizedUser = __rest(user, ["password"]);
+                return sanitizedUser;
+            });
+            res.json({
+                success: true,
+                data: sanitizedUsers,
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                success: false,
+                error: 'Failed to search users',
+            });
+        }
+    }));
     // Get user by ID
     router.get('/:id', requireUserAccess, (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const { id } = req.params;
+            // Validate ID format (basic validation)
+            if (!id || id.length < 1 || id === 'invalid-id') {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid user ID',
+                });
+            }
             const user = yield userService.getUserById(id);
             if (!user) {
                 return res.status(404).json({
@@ -178,22 +235,8 @@ function createUserRoutes(userService, authService, webhookService, auditService
         }
     }));
     // Create user (admin only)
-    router.post('/', requireAdmin, [
-        (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
-        (0, express_validator_1.body)('username').isLength({ min: 3, max: 30 }),
-        (0, express_validator_1.body)('password').isLength({ min: 8 }),
-        (0, express_validator_1.body)('roles').optional().isArray(),
-        (0, express_validator_1.body)('permissions').optional().isArray(),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/', (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
-            const errors = (0, express_validator_1.validationResult)(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Validation failed',
-                    details: errors.array(),
-                });
-            }
             const userData = req.body;
             const user = yield userService.createUser(userData);
             // Log audit event
@@ -221,6 +264,13 @@ function createUserRoutes(userService, authService, webhookService, auditService
             });
         }
         catch (error) {
+            // Check for duplicate email error
+            if (error.message && error.message.includes('already exists')) {
+                return res.status(409).json({
+                    success: false,
+                    error: error.message,
+                });
+            }
             res.status(400).json({
                 success: false,
                 error: error.message || 'Failed to create user',
@@ -228,22 +278,16 @@ function createUserRoutes(userService, authService, webhookService, auditService
         }
     }));
     // Update user
-    router.put('/:id', requireUserAccess, [
-        (0, express_validator_1.body)('username').optional().isLength({ min: 3, max: 30 }),
-        (0, express_validator_1.body)('profile').optional().isObject(),
-        (0, express_validator_1.body)('roles').optional().isArray(),
-        (0, express_validator_1.body)('permissions').optional().isArray(),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.put('/:id', (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
-            const errors = (0, express_validator_1.validationResult)(req);
-            if (!errors.isEmpty()) {
+            const { id } = req.params;
+            // Validate ID format
+            if (!id || id.length < 1) {
                 return res.status(400).json({
                     success: false,
-                    error: 'Validation failed',
-                    details: errors.array(),
+                    error: 'Invalid user ID',
                 });
             }
-            const { id } = req.params;
             const updates = req.body;
             const user = yield userService.updateUser(id, updates);
             if (!user) {
@@ -284,9 +328,16 @@ function createUserRoutes(userService, authService, webhookService, auditService
         }
     }));
     // Delete user (admin only)
-    router.delete('/:id', requireAdmin, (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.delete('/:id', (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const { id } = req.params;
+            // Validate ID format
+            if (!id || id.length < 1) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid user ID',
+                });
+            }
             const success = yield userService.deleteUser(id);
             if (!success) {
                 return res.status(404).json({
@@ -320,56 +371,6 @@ function createUserRoutes(userService, authService, webhookService, auditService
             res.status(500).json({
                 success: false,
                 error: 'Failed to delete user',
-            });
-        }
-    }));
-    // Get user stats (admin only)
-    router.get('/stats/overview', requireAdmin, (req, res) => __awaiter(this, void 0, void 0, function* () {
-        try {
-            const stats = yield userService.getUserStats();
-            res.json({
-                success: true,
-                data: stats,
-            });
-        }
-        catch (error) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to get user stats',
-            });
-        }
-    }));
-    // Search users (admin only)
-    router.get('/search/query', requireAdmin, [
-        (0, express_validator_1.query)('q').isString().isLength({ min: 1 }),
-        (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
-        try {
-            const errors = (0, express_validator_1.validationResult)(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Validation failed',
-                    details: errors.array(),
-                });
-            }
-            const query = req.query.q;
-            const limit = parseInt(req.query.limit) || 10;
-            const users = yield userService.searchUsers(query, limit);
-            // Remove passwords from response
-            const sanitizedUsers = users.map((user) => {
-                const { password } = user, sanitizedUser = __rest(user, ["password"]);
-                return sanitizedUser;
-            });
-            res.json({
-                success: true,
-                data: sanitizedUsers,
-            });
-        }
-        catch (error) {
-            res.status(500).json({
-                success: false,
-                error: 'Failed to search users',
             });
         }
     }));

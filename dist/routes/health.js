@@ -6,8 +6,8 @@ const caching_1 = require("../middleware/caching");
 const performance_1 = require("../middleware/performance");
 function createHealthRoutes() {
     const router = (0, express_1.Router)();
-    // Basic health check with caching
-    router.get('/', (0, caching_1.cacheMiddleware)({ ttl: 30000 }), (req, res) => {
+    // Basic health check with caching (disabled in test environment)
+    const healthHandler = (req, res) => {
         const healthCheck = {
             status: 'healthy',
             timestamp: new Date(),
@@ -24,7 +24,14 @@ function createHealthRoutes() {
             success: true,
             data: Object.assign(Object.assign({}, healthCheck), { performance: performance_1.performanceMonitor.getMetrics() }),
         });
-    });
+    };
+    // Use caching only in production
+    if (process.env.NODE_ENV === 'production') {
+        router.get('/', (0, caching_1.cacheMiddleware)({ ttl: 30000 }), healthHandler);
+    }
+    else {
+        router.get('/', healthHandler);
+    }
     // Detailed health check
     router.get('/detailed', (req, res) => {
         const healthCheck = {

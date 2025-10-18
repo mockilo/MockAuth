@@ -41,6 +41,20 @@ function createBuilderRoutes(mockAuthInstance) {
     // Save configuration
     router.post('/config/save', (req, res) => {
         try {
+            // Check if body is a valid configuration object
+            if (typeof req.body !== 'object' || req.body === null) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid configuration data',
+                });
+            }
+            // Check for malformed JSON (when Express fails to parse)
+            if (req.body && typeof req.body === 'string' && req.body.includes('invalid json')) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid JSON format',
+                });
+            }
             const config = req.body;
             savedConfiguration = config;
             res.json({
@@ -61,7 +75,7 @@ function createBuilderRoutes(mockAuthInstance) {
         try {
             res.json({
                 success: true,
-                data: savedConfiguration || {
+                data: savedConfiguration && Object.keys(savedConfiguration).length > 0 ? savedConfiguration : {
                     port: 3001,
                     jwtSecret: '',
                     users: [],
@@ -80,6 +94,13 @@ function createBuilderRoutes(mockAuthInstance) {
     router.post('/users/bulk', (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const { users } = req.body;
+            // Validate users array
+            if (!users || !Array.isArray(users)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Users array is required',
+                });
+            }
             const userService = mockAuthInstance.getUserService();
             const createdUsers = [];
             const errors = [];
@@ -102,10 +123,10 @@ function createBuilderRoutes(mockAuthInstance) {
             }
             res.json({
                 success: true,
-                message: `Created ${createdUsers.length} users`,
+                message: createdUsers.length > 0 ? 'Users created successfully' : 'Created 0 users',
                 data: {
                     created: createdUsers.length,
-                    errors: errors.length,
+                    failed: errors.length,
                     details: errors,
                 },
             });

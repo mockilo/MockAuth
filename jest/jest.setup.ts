@@ -1,31 +1,26 @@
 // jest/jest.setup.ts
-// Angular setup
-import 'jest-preset-angular/setup-jest';
+// Basic Jest setup for Node.js environment
 
-// any global mocks used by your test suites:
-Object.defineProperty(window, 'CSS', { value: null });
-(global as any).Intl = require('intl'); // if needed
-
-// Mock localStorage
+// Mock localStorage for Node.js environment
 const localStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock;
+(global as any).localStorage = localStorageMock;
 
-// Mock window.location
-Object.defineProperty(window, 'location', {
-  value: {
+// Mock window object for Node.js environment
+(global as any).window = {
+  location: {
     href: 'http://localhost:3000',
     origin: 'http://localhost:3000',
     pathname: '/',
     search: '',
     hash: '',
   },
-  writable: true,
-});
+  CSS: null,
+};
 
 // Mock console methods to reduce noise in tests
 global.console = {

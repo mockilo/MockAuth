@@ -6,8 +6,8 @@ import { performanceMonitor } from '../middleware/performance';
 export function createHealthRoutes(): Router {
   const router = Router();
 
-  // Basic health check with caching
-  router.get('/', cacheMiddleware({ ttl: 30000 }), (req, res) => {
+  // Basic health check with caching (disabled in test environment)
+  const healthHandler = (req, res) => {
     const healthCheck: HealthCheck = {
       status: 'healthy',
       timestamp: new Date(),
@@ -28,7 +28,14 @@ export function createHealthRoutes(): Router {
         performance: performanceMonitor.getMetrics(),
       },
     });
-  });
+  };
+
+  // Use caching only in production
+  if (process.env.NODE_ENV === 'production') {
+    router.get('/', cacheMiddleware({ ttl: 30000 }), healthHandler);
+  } else {
+    router.get('/', healthHandler);
+  }
 
   // Detailed health check
   router.get('/detailed', (req, res) => {

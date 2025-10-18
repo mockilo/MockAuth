@@ -21,7 +21,15 @@ describe('Builder Routes', () => {
         getAllUsers: jest.fn().mockResolvedValue([
           { id: '1', email: 'user1@example.com', username: 'user1' },
           { id: '2', email: 'user2@example.com', username: 'user2' }
-        ])
+        ]),
+        createUser: jest.fn().mockImplementation((userData) => {
+          return Promise.resolve({
+            id: Math.random().toString(36).substr(2, 9),
+            email: userData.email,
+            username: userData.username,
+            roles: userData.roles || ['user']
+          });
+        })
       })
     };
 
@@ -102,7 +110,8 @@ describe('Builder Routes', () => {
     it('should handle malformed JSON', async () => {
       const response = await request(app)
         .post('/builder/config/save')
-        .send('invalid json')
+        .set('Content-Type', 'application/json')
+        .send('{ invalid json }')
         .expect(400);
     });
   });

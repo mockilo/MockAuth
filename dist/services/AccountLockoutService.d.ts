@@ -3,7 +3,7 @@ export interface LockoutRecord {
     userId: string;
     attempts: number;
     lockedAt: Date;
-    lockedUntil: Date;
+    lockedUntil?: Date;
     reason?: string;
     unlockedBy?: string;
     unlockedAt?: Date;

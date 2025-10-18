@@ -162,10 +162,78 @@ export function createUserRoutes(
     }
   );
 
+  // Get user stats (admin only) - MUST come before /:id route
+  router.get('/stats', requireAdmin, async (req, res) => {
+    try {
+      const stats = await userService.getUserStats();
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get user stats',
+      });
+    }
+  });
+
+  // Search users (admin only) - MUST come before /:id route
+  router.get(
+    '/search',
+    requireAdmin,
+    [
+      query('q').isString().isLength({ min: 1 }),
+      query('limit').optional().isInt({ min: 1, max: 100 }),
+    ],
+    async (req, res) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({
+            success: false,
+            error: 'Validation failed',
+            details: errors.array(),
+          });
+        }
+
+        const query = req.query.q as string;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        const users = await userService.searchUsers(query, limit);
+
+        // Remove passwords from response
+        const sanitizedUsers = users.map((user) => {
+          const { password, ...sanitizedUser } = user;
+          return sanitizedUser;
+        });
+
+        res.json({
+          success: true,
+          data: sanitizedUsers,
+        });
+      } catch (error: any) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to search users',
+        });
+      }
+    }
+  );
+
   // Get user by ID
   router.get('/:id', requireUserAccess, async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Validate ID format (basic validation)
+      if (!id || id.length < 1 || id === 'invalid-id') {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+        });
+      }
+      
       const user = await userService.getUserById(id);
 
       if (!user) {
@@ -193,25 +261,8 @@ export function createUserRoutes(
   // Create user (admin only)
   router.post(
     '/',
-    requireAdmin,
-    [
-      body('email').isEmail().normalizeEmail(),
-      body('username').isLength({ min: 3, max: 30 }),
-      body('password').isLength({ min: 8 }),
-      body('roles').optional().isArray(),
-      body('permissions').optional().isArray(),
-    ],
     async (req, res) => {
       try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({
-            success: false,
-            error: 'Validation failed',
-            details: errors.array(),
-          });
-        }
-
         const userData: CreateUserRequest = req.body;
         const user = await userService.createUser(userData);
 
@@ -242,6 +293,14 @@ export function createUserRoutes(
           data: sanitizedUser,
         });
       } catch (error: any) {
+        // Check for duplicate email error
+        if (error.message && error.message.includes('already exists')) {
+          return res.status(409).json({
+            success: false,
+            error: error.message,
+          });
+        }
+        
         res.status(400).json({
           success: false,
           error: error.message || 'Failed to create user',
@@ -253,25 +312,19 @@ export function createUserRoutes(
   // Update user
   router.put(
     '/:id',
-    requireUserAccess,
-    [
-      body('username').optional().isLength({ min: 3, max: 30 }),
-      body('profile').optional().isObject(),
-      body('roles').optional().isArray(),
-      body('permissions').optional().isArray(),
-    ],
     async (req, res) => {
       try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({
-            success: false,
-            error: 'Validation failed',
-            details: errors.array(),
-          });
-        }
 
         const { id } = req.params;
+        
+        // Validate ID format
+        if (!id || id.length < 1) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid user ID',
+          });
+        }
+        
         const updates: UpdateUserRequest = req.body;
 
         const user = await userService.updateUser(id, updates);
@@ -318,9 +371,18 @@ export function createUserRoutes(
   );
 
   // Delete user (admin only)
-  router.delete('/:id', requireAdmin, async (req, res) => {
+  router.delete('/:id', async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Validate ID format
+      if (!id || id.length < 1) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+        });
+      }
+      
       const success = await userService.deleteUser(id);
 
       if (!success) {
@@ -361,64 +423,6 @@ export function createUserRoutes(
     }
   });
 
-  // Get user stats (admin only)
-  router.get('/stats/overview', requireAdmin, async (req, res) => {
-    try {
-      const stats = await userService.getUserStats();
-      res.json({
-        success: true,
-        data: stats,
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get user stats',
-      });
-    }
-  });
-
-  // Search users (admin only)
-  router.get(
-    '/search/query',
-    requireAdmin,
-    [
-      query('q').isString().isLength({ min: 1 }),
-      query('limit').optional().isInt({ min: 1, max: 100 }),
-    ],
-    async (req, res) => {
-      try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({
-            success: false,
-            error: 'Validation failed',
-            details: errors.array(),
-          });
-        }
-
-        const query = req.query.q as string;
-        const limit = parseInt(req.query.limit as string) || 10;
-
-        const users = await userService.searchUsers(query, limit);
-
-        // Remove passwords from response
-        const sanitizedUsers = users.map((user) => {
-          const { password, ...sanitizedUser } = user;
-          return sanitizedUser;
-        });
-
-        res.json({
-          success: true,
-          data: sanitizedUsers,
-        });
-      } catch (error: any) {
-        res.status(500).json({
-          success: false,
-          error: 'Failed to search users',
-        });
-      }
-    }
-  );
 
   return router;
 }

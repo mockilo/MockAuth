@@ -1,6 +1,6 @@
 import { MockAuthStatusComponent } from '../../../src/components/angular/components/mock-auth-status.component';
 
-describe.skip('Component Coverage Tests', () => {
+describe.skip('Component Coverage Tests - SKIPPED: Component testing disabled', () => {
   describe('Angular Components', () => {
     let component: MockAuthStatusComponent;
 

@@ -1,20 +1,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import MockAuthComponents from '../../../src/components/vue/MockAuthComponents.vue';
 
-// Mock the composable
-vi.mock('../../../src/components/vue/useMockAuth', () => ({
-  useMockAuth: () => ({
-    login: vi.fn().mockResolvedValue({ success: true }),
-    register: vi.fn().mockResolvedValue({ success: true }),
-    logout: vi.fn().mockResolvedValue({ success: true }),
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
-  }),
-}));
-
-describe.skip('MockAuthComponents', () => {
+describe.skip('MockAuthComponents - SKIPPED: Component testing disabled', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {

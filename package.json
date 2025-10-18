@@ -8,7 +8,11 @@
     "mockauth": "./dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "npm run copy-web-builder && npm run copy-auth && npm run copy-components",
+    "copy-web-builder": "node -e \"const fs=require('fs');const path=require('path');const src='src/web-builder';const dest='dist/web-builder';if(!fs.existsSync(dest))fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)))\"",
+    "copy-auth": "node -e \"const fs=require('fs');const path=require('path');const src='src/auth';const dest='dist/auth';if(!fs.existsSync(dest))fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)))\"",
+    "copy-components": "node -e \"const fs=require('fs');const path=require('path');const copyRecursive=(src,dest)=>{if(!fs.existsSync(dest))fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).forEach(f=>{const srcPath=path.join(src,f);const destPath=path.join(dest,f);if(fs.statSync(srcPath).isDirectory()){copyRecursive(srcPath,destPath)}else{fs.copyFileSync(srcPath,destPath)}})};copyRecursive('src/components','dist/components')\"",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
@@ -91,6 +95,10 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
     "@testing-library/jest-dom": "^6.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/boxen": "^3.0.5",
@@ -111,12 +119,14 @@
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/vue3-jest": "^29.2.6",
+    "babel-jest": "^29.7.0",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "http-server": "^14.1.1",
     "identity-obj-proxy": "^3.0.0",
-    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
     "prettier": "^3.1.0",
@@ -126,26 +136,6 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.4.5",
     "vue": "^3.5.22"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleNameMapper": {
-      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json",
-        "diagnostics": false
-      }
-    }
   },
   "peerDependencies": {
     "@angular/common": ">=15.0.0",
