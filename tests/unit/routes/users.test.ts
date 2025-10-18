@@ -17,9 +17,9 @@ describe('User Routes', () => {
     app.use(express.json());
     
     // Mock authentication middleware to bypass auth
-    app.use((req, res, next) => {
+    app.use((req: any, res: any, next: any) => {
       req.user = { id: '1', email: 'test@example.com' };
-      req.isAuthenticated = () => true;
+      req.isAuthenticated = jest.fn(() => true);
       next();
     });
 

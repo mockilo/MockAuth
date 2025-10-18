@@ -123,7 +123,8 @@
     "typedoc": "^0.25.4",
     "typescript": "^5.4.5",
     "vue": "^3.5.22",
-    "@testing-library/jest-dom": "^6.0.0"
+    "@testing-library/jest-dom": "^6.0.0",
+    "babel-jest": "^29.7.0"
   },
   "peerDependencies": {
     "@angular/common": ">=15.0.0",
@@ -136,7 +137,7 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "node",
+    "testEnvironment": "jsdom",
     "roots": [
       "<rootDir>/src",
       "<rootDir>/tests"
@@ -158,12 +159,14 @@
     ],
     "testTimeout": 10000,
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.(ts|tsx)$": "ts-jest",
+      "^.+\\.(js|jsx)$": "babel-jest"
     },
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "vue"],
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
     "transformIgnorePatterns": [
       "node_modules/(?!(.*\\.mjs$))"
     ],
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.ts"],
     "globals": {
       "ts-jest": {
         "tsconfig": "tsconfig.json"
