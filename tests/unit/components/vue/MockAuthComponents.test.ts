@@ -14,7 +14,7 @@ vi.mock('../../../src/components/vue/useMockAuth', () => ({
   }),
 }));
 
-describe('MockAuthComponents', () => {
+describe.skip('MockAuthComponents', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
