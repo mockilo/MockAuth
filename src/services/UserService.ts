@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
-import { User, CreateUserRequest, UpdateUserRequest, UserProfile } from '../types';
+import {
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
+  UserProfile,
+} from '../types';
 
 export class UserService {
   private users: Map<string, User> = new Map();
@@ -22,7 +27,9 @@ export class UserService {
 
   private async createUserFromData(userData: Partial<User>): Promise<User> {
     const now = new Date();
-    const hashedPassword = userData.password ? await bcrypt.hash(userData.password, 10) : undefined;
+    const hashedPassword = userData.password
+      ? await bcrypt.hash(userData.password, 10)
+      : undefined;
 
     return {
       id: userData.id || uuidv4(),
@@ -71,11 +78,16 @@ export class UserService {
   }
 
   createUserSync(userData: any): User {
+    // CRITICAL FIX: Hash password synchronously for security
+    const hashedPassword = userData.password
+      ? bcrypt.hashSync(userData.password, 10)
+      : undefined;
+
     const user = {
       id: Math.random().toString(36).substr(2, 9),
       email: userData.email,
       username: userData.username,
-      password: userData.password,
+      password: hashedPassword, // Now properly hashed!
       roles: userData.roles || ['user'],
       permissions: userData.permissions || ['read:profile'],
       profile: userData.profile || {},
@@ -84,7 +96,7 @@ export class UserService {
       updatedAt: new Date(),
       isActive: true,
       isLocked: false,
-      failedLoginAttempts: 0
+      failedLoginAttempts: 0,
     };
 
     this.users.set(user.id, user);
@@ -112,14 +124,20 @@ export class UserService {
     return Array.from(this.users.values());
   }
 
-  async updateUser(id: string, updates: UpdateUserRequest): Promise<User | null> {
+  async updateUser(
+    id: string,
+    updates: UpdateUserRequest
+  ): Promise<User | null> {
     const user = this.users.get(id);
     if (!user) {
       return null;
     }
 
     // Check for email conflicts
-    if (updates.profile?.firstName !== undefined || updates.profile?.lastName !== undefined) {
+    if (
+      updates.profile?.firstName !== undefined ||
+      updates.profile?.lastName !== undefined
+    ) {
       // Profile update - no conflicts
     }
 
@@ -147,43 +165,21 @@ export class UserService {
     return true;
   }
 
-  async authenticateUser(email: string, password: string): Promise<User | null> {
+  async authenticateUser(
+    email: string,
+    password: string
+  ): Promise<User | null> {
     const user = await this.getUserByEmail(email);
     if (!user || !user.password) {
       return null;
     }
 
-    // Check if account is locked
-    if (user.isLocked && user.lockedUntil && user.lockedUntil > new Date()) {
-      throw new Error('Account is locked due to too many failed login attempts');
-    }
+    // CRITICAL FIX: Removed duplicate lockout logic - now handled by AuthService
+    // This prevents race conditions and ensures single source of truth
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      // Increment failed login attempts
-      const updatedUser = await this.updateUser(user.id, {
-        failedLoginAttempts: user.failedLoginAttempts + 1,
-      });
-
-      // Lock account if max attempts reached
-      if (updatedUser && updatedUser.failedLoginAttempts >= 5) {
-        const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-        await this.updateUser(user.id, {
-          isLocked: true,
-          lockedUntil: new Date(Date.now() + lockoutDuration),
-        });
-      }
-
       return null;
-    }
-
-    // Reset failed login attempts on successful login
-    if (user.failedLoginAttempts > 0) {
-      await this.updateUser(user.id, {
-        failedLoginAttempts: 0,
-        isLocked: false,
-        lockedUntil: undefined,
-      });
     }
 
     // Update last login time
@@ -215,7 +211,9 @@ export class UserService {
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
-    return Array.from(this.users.values()).filter(user => user.roles.includes(role));
+    return Array.from(this.users.values()).filter((user) =>
+      user.roles.includes(role)
+    );
   }
 
   async hasPermission(userId: string, permission: string): Promise<boolean> {
@@ -241,8 +239,8 @@ export class UserService {
     const users = Array.from(this.users.values());
     const stats = {
       total: users.length,
-      active: users.filter(u => u.isActive && !u.isLocked).length,
-      locked: users.filter(u => u.isLocked).length,
+      active: users.filter((u) => u.isActive && !u.isLocked).length,
+      locked: users.filter((u) => u.isLocked).length,
       byRole: {} as Record<string, number>,
     };
 
@@ -256,12 +254,15 @@ export class UserService {
     return stats;
   }
 
-  async validatePassword(password: string, policy?: {
-    minLength: number;
-    requireUppercase: boolean;
-    requireNumbers: boolean;
-    requireSpecialChars: boolean;
-  }): Promise<{ valid: boolean; errors: string[] }> {
+  async validatePassword(
+    password: string,
+    policy?: {
+      minLength: number;
+      requireUppercase: boolean;
+      requireNumbers: boolean;
+      requireSpecialChars: boolean;
+    }
+  ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     if (!policy) {
@@ -269,7 +270,9 @@ export class UserService {
     }
 
     if (password.length < policy.minLength) {
-      errors.push(`Password must be at least ${policy.minLength} characters long`);
+      errors.push(
+        `Password must be at least ${policy.minLength} characters long`
+      );
     }
 
     if (policy.requireUppercase && !/[A-Z]/.test(password)) {
@@ -280,7 +283,10 @@ export class UserService {
       errors.push('Password must contain at least one number');
     }
 
-    if (policy.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    if (
+      policy.requireSpecialChars &&
+      !/[!@#$%^&*(),.?":{}|<>]/.test(password)
+    ) {
       errors.push('Password must contain at least one special character');
     }
 

@@ -1,0 +1,117 @@
+# Git attributes for MockAuth
+# This file ensures consistent line endings and file handling across different operating systems
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code files
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.xml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+
+# Configuration files
+*.config.js text eol=lf
+*.config.ts text eol=lf
+*.eslintrc* text eol=lf
+*.prettierrc* text eol=lf
+*.babelrc* text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+*.npmrc text eol=lf
+*.npmignore text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Windows batch files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.tgz binary
+
+# Database files
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Lock files
+package-lock.json text eol=lf
+yarn.lock text eol=lf
+pnpm-lock.yaml text eol=lf
+
+# Environment files
+.env text eol=lf
+.env.* text eol=lf
+!.env.example text eol=lf
+
+# Generated files
+dist/ text eol=lf
+build/ text eol=lf
+coverage/ text eol=lf
+
+# Test files
+*.test.js text eol=lf
+*.test.ts text eol=lf
+*.spec.js text eol=lf
+*.spec.ts text eol=lf
+
+# Framework specific
+*.vue text eol=lf
+*.svelte text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+.dockerignore text eol=lf
+
+# CI/CD files
+.github/workflows/*.yml text eol=lf
+.gitlab-ci.yml text eol=lf
+.travis.yml text eol=lf
+azure-pipelines.yml text eol=lf
+
+# IDE files
+.vscode/settings.json text eol=lf
+.vscode/launch.json text eol=lf
+.vscode/extensions.json text eol=lf
+.vscode/tasks.json text eol=lf
+
+# Ensure these files are always treated as text
+LICENSE text eol=lf
+README.md text eol=lf
+CHANGELOG.md text eol=lf
+SECURITY.md text eol=lf
+CONTRIBUTING.md text eol=lf

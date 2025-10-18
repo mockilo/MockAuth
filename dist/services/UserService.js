@@ -55,7 +55,9 @@ class UserService {
     createUserFromData(userData) {
         return __awaiter(this, void 0, void 0, function* () {
             const now = new Date();
-            const hashedPassword = userData.password ? yield bcrypt.hash(userData.password, 10) : undefined;
+            const hashedPassword = userData.password
+                ? yield bcrypt.hash(userData.password, 10)
+                : undefined;
             return {
                 id: userData.id || (0, uuid_1.v4)(),
                 email: userData.email || '',
@@ -100,11 +102,15 @@ class UserService {
         });
     }
     createUserSync(userData) {
+        // CRITICAL FIX: Hash password synchronously for security
+        const hashedPassword = userData.password
+            ? bcrypt.hashSync(userData.password, 10)
+            : undefined;
         const user = {
             id: Math.random().toString(36).substr(2, 9),
             email: userData.email,
             username: userData.username,
-            password: userData.password,
+            password: hashedPassword, // Now properly hashed!
             roles: userData.roles || ['user'],
             permissions: userData.permissions || ['read:profile'],
             profile: userData.profile || {},
@@ -113,7 +119,7 @@ class UserService {
             updatedAt: new Date(),
             isActive: true,
             isLocked: false,
-            failedLoginAttempts: 0
+            failedLoginAttempts: 0,
         };
         this.users.set(user.id, user);
         this.emailIndex.set(user.email.toLowerCase(), user.id);
@@ -150,7 +156,8 @@ class UserService {
                 return null;
             }
             // Check for email conflicts
-            if (((_a = updates.profile) === null || _a === void 0 ? void 0 : _a.firstName) !== undefined || ((_b = updates.profile) === null || _b === void 0 ? void 0 : _b.lastName) !== undefined) {
+            if (((_a = updates.profile) === null || _a === void 0 ? void 0 : _a.firstName) !== undefined ||
+                ((_b = updates.profile) === null || _b === void 0 ? void 0 : _b.lastName) !== undefined) {
                 // Profile update - no conflicts
             }
             const updatedUser = Object.assign(Object.assign(Object.assign({}, user), updates), { profile: Object.assign(Object.assign({}, user.profile), updates.profile), metadata: Object.assign(Object.assign({}, user.metadata), updates.metadata), updatedAt: new Date() });
@@ -176,33 +183,11 @@ class UserService {
             if (!user || !user.password) {
                 return null;
             }
-            // Check if account is locked
-            if (user.isLocked && user.lockedUntil && user.lockedUntil > new Date()) {
-                throw new Error('Account is locked due to too many failed login attempts');
-            }
+            // CRITICAL FIX: Removed duplicate lockout logic - now handled by AuthService
+            // This prevents race conditions and ensures single source of truth
             const isValidPassword = yield bcrypt.compare(password, user.password);
             if (!isValidPassword) {
-                // Increment failed login attempts
-                const updatedUser = yield this.updateUser(user.id, {
-                    failedLoginAttempts: user.failedLoginAttempts + 1,
-                });
-                // Lock account if max attempts reached
-                if (updatedUser && updatedUser.failedLoginAttempts >= 5) {
-                    const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-                    yield this.updateUser(user.id, {
-                        isLocked: true,
-                        lockedUntil: new Date(Date.now() + lockoutDuration),
-                    });
-                }
                 return null;
-            }
-            // Reset failed login attempts on successful login
-            if (user.failedLoginAttempts > 0) {
-                yield this.updateUser(user.id, {
-                    failedLoginAttempts: 0,
-                    isLocked: false,
-                    lockedUntil: undefined,
-                });
             }
             // Update last login time
             yield this.updateUser(user.id, {
@@ -231,7 +216,7 @@ class UserService {
     }
     getUsersByRole(role) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Array.from(this.users.values()).filter(user => user.roles.includes(role));
+            return Array.from(this.users.values()).filter((user) => user.roles.includes(role));
         });
     }
     hasPermission(userId, permission) {
@@ -255,8 +240,8 @@ class UserService {
             const users = Array.from(this.users.values());
             const stats = {
                 total: users.length,
-                active: users.filter(u => u.isActive && !u.isLocked).length,
-                locked: users.filter(u => u.isLocked).length,
+                active: users.filter((u) => u.isActive && !u.isLocked).length,
+                locked: users.filter((u) => u.isLocked).length,
                 byRole: {},
             };
             // Count users by role
@@ -283,7 +268,8 @@ class UserService {
             if (policy.requireNumbers && !/\d/.test(password)) {
                 errors.push('Password must contain at least one number');
             }
-            if (policy.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            if (policy.requireSpecialChars &&
+                !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
                 errors.push('Password must contain at least one special character');
             }
             return {

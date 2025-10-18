@@ -40,22 +40,22 @@ function createAuditService(enabled = false) {
                 let filteredLogs = [...auditLogs];
                 if (filters) {
                     if (filters.userId) {
-                        filteredLogs = filteredLogs.filter(log => log.userId === filters.userId);
+                        filteredLogs = filteredLogs.filter((log) => log.userId === filters.userId);
                     }
                     if (filters.action) {
-                        filteredLogs = filteredLogs.filter(log => log.action === filters.action);
+                        filteredLogs = filteredLogs.filter((log) => log.action === filters.action);
                     }
                     if (filters.resource) {
-                        filteredLogs = filteredLogs.filter(log => log.resource === filters.resource);
+                        filteredLogs = filteredLogs.filter((log) => log.resource === filters.resource);
                     }
                     if (filters.startDate) {
-                        filteredLogs = filteredLogs.filter(log => log.timestamp >= filters.startDate);
+                        filteredLogs = filteredLogs.filter((log) => log.timestamp >= filters.startDate);
                     }
                     if (filters.endDate) {
-                        filteredLogs = filteredLogs.filter(log => log.timestamp <= filters.endDate);
+                        filteredLogs = filteredLogs.filter((log) => log.timestamp <= filters.endDate);
                     }
                     if (filters.success !== undefined) {
-                        filteredLogs = filteredLogs.filter(log => log.success === filters.success);
+                        filteredLogs = filteredLogs.filter((log) => log.success === filters.success);
                     }
                 }
                 return filteredLogs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -77,7 +77,8 @@ function createAuditService(enabled = false) {
                     // Count by action
                     stats.byAction[log.action] = (stats.byAction[log.action] || 0) + 1;
                     // Count by resource
-                    stats.byResource[log.resource] = (stats.byResource[log.resource] || 0) + 1;
+                    stats.byResource[log.resource] =
+                        (stats.byResource[log.resource] || 0) + 1;
                     // Count successes
                     if (log.success) {
                         successCount++;
@@ -87,7 +88,8 @@ function createAuditService(enabled = false) {
                         stats.recentActivity++;
                     }
                 }
-                stats.successRate = auditLogs.length > 0 ? (successCount / auditLogs.length) * 100 : 0;
+                stats.successRate =
+                    auditLogs.length > 0 ? (successCount / auditLogs.length) * 100 : 0;
                 return stats;
             });
         },

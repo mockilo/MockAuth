@@ -6,57 +6,25 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
-      - MOCKAUTH_PORT=3001
-      - MOCKAUTH_HOST=0.0.0.0
-      - MOCKAUTH_BASE_URL=http://localhost:3001
-      - MOCKAUTH_JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - MOCKAUTH_TOKEN_EXPIRY=24h
-      - MOCKAUTH_REFRESH_EXPIRY=7d
-      - MOCKAUTH_LOG_LEVEL=info
-      - MOCKAUTH_ENABLE_AUDIT=true
+      - NODE_ENV=dev
+      - DATABASE_URL=postgresql://user:password@db:5432/mockauth
+    depends_on:
+      - db
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - mockauth-network
 
-  # Example React app (optional)
-  react-example:
-    build:
-      context: ./examples/react
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+  db:
+    image: postgres:15-alpine
     environment:
-      - REACT_APP_MOCKAUTH_URL=http://localhost:3001
-    depends_on:
-      - mockauth
-    networks:
-      - mockauth-network
+      - POSTGRES_DB=mockauth
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
-  # Example Express app (optional)
-  express-example:
-    build:
-      context: ./examples/express
-      dockerfile: Dockerfile
-    ports:
-      - "3002:3000"
-    environment:
-      - MOCKAUTH_URL=http://mockauth:3001
-    depends_on:
-      - mockauth
-    networks:
-      - mockauth-network
-
-networks:
-  mockauth-network:
-    driver: bridge
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
 
 volumes:
-  # Add volumes if you need persistent storage
-  mockauth-data:
+  postgres_data:

@@ -1,4 +1,4 @@
-import { MockAuthConfig, User } from './types';
+import { MockAuthConfig, User, EcosystemService, DatabaseService } from './types';
 import { UserService } from './services/UserService';
 import { AuthService } from './services/AuthService';
 export declare class MockAuth {
@@ -8,17 +8,26 @@ export declare class MockAuth {
     private authService;
     private webhookService;
     private auditService;
+    private ecosystemService;
+    private databaseService;
+    private ssoService;
+    private rbacService;
+    private complianceService;
     private config;
+    private cleanupInterval;
     constructor(config: MockAuthConfig);
     private validateConfig;
     private setupMiddleware;
     private setupRoutes;
+    private setupWebInterface;
     private setupErrorHandling;
     start(): Promise<void>;
     stop(): Promise<void>;
     getUserService(): UserService;
     getAuthService(): AuthService;
     getConfig(): MockAuthConfig;
+    getEcosystemService(): EcosystemService;
+    getDatabaseService(): DatabaseService;
     createUser(userData: {
         email: string;
         username: string;

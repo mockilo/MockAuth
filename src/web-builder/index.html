@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MockAuth Flow Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1a202c;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #718096;
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .copy-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .user-menu span {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .builder-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            height: fit-content;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            border: 1px solid #d97706;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            border-color: #b45309;
+        }
+
+        .flow-preview {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flow-step {
+            background: white;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 3px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .flow-step h4 {
+            color: #1e40af;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .flow-step p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .config-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 0;
+        }
+
+        .tab {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .user-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-item.new-user {
+            background: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .new-user-badge {
+            background: #10b981;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .remove-user {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+
+        .remove-user:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .endpoint-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            background: #f8fafc;
+        }
+
+        .endpoint-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 13px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .endpoint-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-enabled {
+            background: #10b981;
+        }
+
+        .status-disabled {
+            background: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .builder-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .sidebar, .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MockAuth Builder</h1>
+            <p>Configure your authentication system with ease</p>
+            <div class="user-menu">
+                <span id="userName">Welcome, User</span>
+                <button class="btn-secondary" data-action="dashboard" style="background: #10b981; color: white; border: 1px solid #059669; margin-right: 8px;">📊 Dashboard</button>
+                <button class="btn-secondary" data-action="logout">Logout</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator"></div>
+            <div class="status-text">Ready to configure MockAuth</div>
+        </div>
+
+        <div class="builder-container">
+            <div class="sidebar">
+                <div class="section">
+                    <h3>🔧 Basic Configuration</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="basic">Basic</button>
+                        <button class="preset-btn" data-preset="enterprise">Enterprise</button>
+                        <button class="preset-btn" data-preset="development">Development</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="port">Port</label>
+                        <input type="number" id="port" value="3001" min="1000" max="65535">
+                    </div>
+                    <div class="form-group">
+                        <label for="baseUrl">Base URL</label>
+                        <input type="text" id="baseUrl" value="http://localhost:3001">
+                    </div>
+                    <div class="form-group">
+                        <label for="jwtSecret">JWT Secret (Server-Side, 32+ chars)</label>
+                        <input type="text" id="jwtSecret" placeholder="Auto-generated">
+                        <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">🔒 Used by server to sign tokens. Never shared with users.</small>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🔐 Security Features</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableMFA" checked>
+                        <label for="enableMFA">Enable MFA</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enablePasswordReset" checked>
+                        <label for="enablePasswordReset">Enable Password Reset</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableAccountLockout" checked>
+                        <label for="enableAccountLockout">Enable Account Lockout</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxLoginAttempts">Max Login Attempts</label>
+                        <input type="number" id="maxLoginAttempts" value="5" min="1" max="10">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🗄️ Database</h3>
+                    <div class="form-group">
+                        <label for="databaseType">Database Type</label>
+                        <select id="databaseType">
+                            <option value="memory">In-Memory</option>
+                            <option value="sqlite">SQLite</option>
+                            <option value="postgresql">PostgreSQL</option>
+                            <option value="mysql">MySQL</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dbConfig" style="display: none;">
+                        <label for="connectionString">Connection String</label>
+                        <input type="text" id="connectionString" placeholder="Database connection string">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🎭 Ecosystem</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableMockTail" checked>
+                        <label for="enableMockTail">Enable MockTail</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableSchemaGhost" checked>
+                        <label for="enableSchemaGhost">Enable SchemaGhost</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="schemaGhostPort">SchemaGhost Port</label>
+                        <input type="number" id="schemaGhostPort" value="3002" min="1000" max="65535">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <button class="btn" data-action="generate">🚀 Generate Configuration</button>
+                    <button class="btn btn-secondary" data-action="export">📥 Export Config</button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="tabs">
+                    <div class="tab active" data-tab="preview">📋 Flow Preview</div>
+                    <div class="tab" data-tab="credentials">🔑 Test Credentials</div>
+                    <div class="tab" data-tab="users">👥 Users</div>
+                    <div class="tab" data-tab="endpoints">🔗 Endpoints</div>
+                    <div class="tab" data-tab="config">⚙️ Configuration</div>
+                </div>
+
+                <div id="preview" class="tab-content active">
+                    <h3>Authentication Flow Preview</h3>
+                    <div class="flow-preview">
+                        <div class="flow-step">
+                            <h4>1. User Registration</h4>
+                            <p>POST /auth/register - Create new user account</p>
+                        </div>
+                        <div class="flow-step">
+                            <h4>2. User Login</h4>
+                            <p>POST /auth/login - Authenticate user credentials</p>
+                        </div>
+                        <div class="flow-step">
+                            <h4>3. MFA Setup (Optional)</h4>
+                            <p>POST /auth/mfa/setup - Configure multi-factor authentication</p>
+                        </div>
+                        <div class="flow-step">
+                            <h4>4. Token Refresh</h4>
+                            <p>POST /auth/refresh - Refresh JWT tokens</p>
+                        </div>
+                        <div class="flow-step">
+                            <h4>5. Protected Routes</h4>
+                            <p>GET /users, POST /users - Access protected resources</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="credentials" class="tab-content">
+                    <h3>Test Credentials & Quick Commands</h3>
+                    
+                    <div class="credentials-section" style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: #0369a1;">🔑 Test Credentials (Ready to Use):</h4>
+                        <div style="margin-bottom: 12px;">
+                            <strong>Admin Account:</strong><br>
+                            <span style="font-family: monospace; background: #e0f2fe; padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 4px 0;">
+                                Email: admin@example.com<br>
+                                Password: admin123
+                            </span>
+                        </div>
+                        <div>
+                            <strong>Standard User:</strong><br>
+                            <span style="font-family: monospace; background: #e0f2fe; padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 4px 0;">
+                                Email: user@example.com<br>
+                                Password: user123
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="commands-section" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px 0; color: #475569;">🚀 Quick Test Commands:</h4>
+                        <div style="font-family: monospace; font-size: 0.875rem; line-height: 1.6;">
+                            <div style="margin-bottom: 8px;">
+                                <strong># Login as admin</strong><br>
+                                <span style="background: #1e293b; color: #f1f5f9; padding: 8px; border-radius: 4px; display: block; margin: 4px 0; overflow-x: auto;">
+curl -X POST http://localhost:3002/auth/login \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{"email":"admin@example.com","password":"admin123"}'
+                                </span>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong># Health check</strong><br>
+                                <span style="background: #1e293b; color: #f1f5f9; padding: 8px; border-radius: 4px; display: block; margin: 4px 0;">
+                                    curl http://localhost:3002/health
+                                </span>
+                            </div>
+                            <div>
+                                <strong># Get users (with token)</strong><br>
+                                <span style="background: #1e293b; color: #f1f5f9; padding: 8px; border-radius: 4px; display: block; margin: 4px 0;">
+                                    curl http://localhost:3002/users -H "Authorization: Bearer YOUR_TOKEN"
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="users" class="tab-content">
+                    <h3>User Management</h3>
+                    
+                    <div class="info-note" style="background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.875rem; color: #dc2626;">
+                        ⚠️ <strong>Warning:</strong> Deleting users here will permanently remove them from the backend/dashboard. This action cannot be undone.
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userEmail">Email</label>
+                        <input type="email" id="userEmail" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">Password</label>
+                        <input type="password" id="userPassword" placeholder="password123">
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Role</label>
+                        <select id="userRole">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="moderator">Moderator</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                        <button class="btn" data-action="add-user">➕ Add User</button>
+                        <button class="btn btn-secondary" data-action="sync-users">🔄 Sync to Backend</button>
+                        <button class="btn btn-secondary" data-action="load-users">📥 Load from Backend</button>
+                    </div>
+                    
+                    <div class="user-list" id="userList" style="margin-top: 16px;">
+                        <div style="text-align: center; padding: 20px; color: #64748b; background: #f8fafc; border-radius: 6px; border: 1px dashed #cbd5e1;">
+                            <p>No users found. Add users using the form above or load from backend.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="endpoints" class="tab-content">
+                    <h3>Mock API Endpoints</h3>
+                    <div class="form-group">
+                        <label for="endpointPath">Path</label>
+                        <input type="text" id="endpointPath" placeholder="/api/posts">
+                    </div>
+                    <div class="form-group">
+                        <label for="endpointMethod">Method</label>
+                        <select id="endpointMethod">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="endpointResponse">Response (JSON)</label>
+                        <textarea id="endpointResponse" rows="4" placeholder='{"message": "Hello World"}'></textarea>
+                    </div>
+                    <button class="btn" data-action="add-endpoint">➕ Add Endpoint</button>
+                    
+                    <div class="endpoint-list" id="endpointList">
+                        <div class="endpoint-item">
+                            <span><span class="status-indicator status-enabled"></span>GET /api/posts</span>
+                            <button class="remove-user" data-action="remove-endpoint" data-index="0">Remove</button>
+                        </div>
+                        <div class="endpoint-item">
+                            <span><span class="status-indicator status-enabled"></span>GET /api/users</span>
+                            <button class="remove-user" data-action="remove-endpoint" data-index="1">Remove</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="config" class="tab-content">
+                    <h3>Generated Configuration</h3>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button class="copy-btn" data-action="copy">📋 Copy</button>
+                        <button class="copy-btn" data-action="validate">✅ Validate</button>
+                        <button class="copy-btn" data-action="save">💾 Save</button>
+                    </div>
+                    <div class="config-output" id="configOutput">
+                        Click "Generate Configuration" to see the output
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="builder.js"></script>
+</body>
+</html>

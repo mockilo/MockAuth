@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthService } from '../services/AuthService';
 import { UserService } from '../services/UserService';
-export declare function createAuthRoutes(authService: AuthService, userService: UserService, webhookService: any, auditService: any): Router;
+import { WebhookService, AuditService } from '../types';
+export declare function createAuthRoutes(authService: AuthService, userService: UserService, webhookService: WebhookService | null, auditService: AuditService | null): Router;
 //# sourceMappingURL=auth.d.ts.map

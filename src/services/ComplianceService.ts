@@ -1,0 +1,629 @@
+import { User } from '../types';
+
+export interface ComplianceRule {
+  id: string;
+  name: string;
+  type:
+    | 'password_policy'
+    | 'session_timeout'
+    | 'audit_retention'
+    | 'data_encryption'
+    | 'access_control';
+  description: string;
+  enabled: boolean;
+  config: Record<string, any>;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface ComplianceViolation {
+  id: string;
+  ruleId: string;
+  userId?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  timestamp: Date;
+  resolved: boolean;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface AuditLog {
+  id: string;
+  userId?: string;
+  action: string;
+  resource: string;
+  timestamp: Date;
+  ipAddress?: string;
+  userAgent?: string;
+  success: boolean;
+  details?: Record<string, any>;
+  complianceFlags?: string[];
+}
+
+export interface ComplianceReport {
+  id: string;
+  name: string;
+  type: 'security' | 'privacy' | 'access' | 'audit';
+  generatedAt: Date;
+  period: {
+    start: Date;
+    end: Date;
+  };
+  summary: {
+    totalViolations: number;
+    criticalViolations: number;
+    highViolations: number;
+    mediumViolations: number;
+    lowViolations: number;
+  };
+  violations: ComplianceViolation[];
+  recommendations: string[];
+}
+
+export interface ComplianceConfig {
+  enableAuditLogging: boolean;
+  auditRetentionDays: number;
+  enablePasswordPolicy: boolean;
+  enableSessionMonitoring: boolean;
+  enableDataEncryption: boolean;
+  enableAccessControl: boolean;
+  complianceStandards: string[]; // e.g., ['GDPR', 'HIPAA', 'SOX', 'PCI-DSS']
+  reportingInterval: number; // in days
+}
+
+export class ComplianceService {
+  private config: ComplianceConfig;
+  private rules: Map<string, ComplianceRule> = new Map();
+  private violations: Map<string, ComplianceViolation> = new Map();
+  private auditLogs: AuditLog[] = [];
+  private reports: Map<string, ComplianceReport> = new Map();
+
+  constructor(config: ComplianceConfig) {
+    this.config = config;
+    this.initializeDefaultRules();
+  }
+
+  /**
+   * Log an audit event
+   */
+  async logAuditEvent(
+    userId: string | undefined,
+    action: string,
+    resource: string,
+    success: boolean,
+    details?: Record<string, any>,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<void> {
+    if (!this.config.enableAuditLogging) {
+      return;
+    }
+
+    const auditLog: AuditLog = {
+      id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      userId,
+      action,
+      resource,
+      timestamp: new Date(),
+      ipAddress,
+      userAgent,
+      success,
+      details,
+      complianceFlags: [],
+    };
+
+    // Check for compliance violations
+    const flags = await this.checkComplianceViolations(auditLog);
+    auditLog.complianceFlags = flags;
+
+    this.auditLogs.push(auditLog);
+
+    // Clean up old audit logs
+    this.cleanupOldAuditLogs();
+  }
+
+  /**
+   * Check for compliance violations
+   */
+  private async checkComplianceViolations(
+    auditLog: AuditLog
+  ): Promise<string[]> {
+    const flags: string[] = [];
+
+    for (const rule of this.rules.values()) {
+      if (!rule.enabled) continue;
+
+      const violation = await this.evaluateRule(rule, auditLog);
+      if (violation) {
+        this.violations.set(violation.id, violation);
+        flags.push(rule.id);
+      }
+    }
+
+    return flags;
+  }
+
+  /**
+   * Evaluate a compliance rule
+   */
+  private async evaluateRule(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): Promise<ComplianceViolation | null> {
+    switch (rule.type) {
+      case 'password_policy':
+        return this.evaluatePasswordPolicy(rule, auditLog);
+      case 'session_timeout':
+        return this.evaluateSessionTimeout(rule, auditLog);
+      case 'audit_retention':
+        return this.evaluateAuditRetention(rule, auditLog);
+      case 'data_encryption':
+        return this.evaluateDataEncryption(rule, auditLog);
+      case 'access_control':
+        return this.evaluateAccessControl(rule, auditLog);
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Evaluate password policy compliance
+   */
+  private evaluatePasswordPolicy(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): ComplianceViolation | null {
+    if (
+      auditLog.action !== 'password_change' &&
+      auditLog.action !== 'user_registration'
+    ) {
+      return null;
+    }
+
+    const password = auditLog.details?.password;
+    if (!password) return null;
+
+    const config = rule.config;
+    const violations: string[] = [];
+
+    if (config.minLength && password.length < config.minLength) {
+      violations.push(
+        `Password too short (minimum ${config.minLength} characters)`
+      );
+    }
+
+    if (config.requireUppercase && !/[A-Z]/.test(password)) {
+      violations.push('Password must contain uppercase letters');
+    }
+
+    if (config.requireLowercase && !/[a-z]/.test(password)) {
+      violations.push('Password must contain lowercase letters');
+    }
+
+    if (config.requireNumbers && !/\d/.test(password)) {
+      violations.push('Password must contain numbers');
+    }
+
+    if (config.requireSymbols && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      violations.push('Password must contain special characters');
+    }
+
+    if (
+      config.forbiddenPasswords &&
+      config.forbiddenPasswords.includes(password.toLowerCase())
+    ) {
+      violations.push('Password is in the forbidden list');
+    }
+
+    if (violations.length > 0) {
+      return {
+        id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ruleId: rule.id,
+        userId: auditLog.userId,
+        severity: rule.severity,
+        message: `Password policy violation: ${violations.join(', ')}`,
+        timestamp: new Date(),
+        resolved: false,
+        metadata: { violations },
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Evaluate session timeout compliance
+   */
+  private evaluateSessionTimeout(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): ComplianceViolation | null {
+    if (auditLog.action !== 'session_timeout') {
+      return null;
+    }
+
+    const sessionDuration = auditLog.details?.sessionDuration;
+    const maxDuration = rule.config.maxDuration; // in minutes
+
+    if (sessionDuration && sessionDuration > maxDuration) {
+      return {
+        id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ruleId: rule.id,
+        userId: auditLog.userId,
+        severity: rule.severity,
+        message: `Session timeout exceeded: ${sessionDuration} minutes (max: ${maxDuration})`,
+        timestamp: new Date(),
+        resolved: false,
+        metadata: { sessionDuration, maxDuration },
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Evaluate audit retention compliance
+   */
+  private evaluateAuditRetention(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): ComplianceViolation | null {
+    const retentionDays = rule.config.retentionDays;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+    const oldLogs = this.auditLogs.filter((log) => log.timestamp < cutoffDate);
+
+    if (oldLogs.length > 0) {
+      return {
+        id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ruleId: rule.id,
+        severity: rule.severity,
+        message: `Audit logs older than ${retentionDays} days found: ${oldLogs.length} logs`,
+        timestamp: new Date(),
+        resolved: false,
+        metadata: { oldLogCount: oldLogs.length, retentionDays },
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Evaluate data encryption compliance
+   */
+  private evaluateDataEncryption(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): ComplianceViolation | null {
+    if (
+      auditLog.action !== 'data_access' &&
+      auditLog.action !== 'data_storage'
+    ) {
+      return null;
+    }
+
+    const isEncrypted = auditLog.details?.encrypted;
+    const requiresEncryption = rule.config.requireEncryption;
+
+    if (requiresEncryption && !isEncrypted) {
+      return {
+        id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ruleId: rule.id,
+        userId: auditLog.userId,
+        severity: rule.severity,
+        message: 'Data access/storage without encryption detected',
+        timestamp: new Date(),
+        resolved: false,
+        metadata: { requiresEncryption, isEncrypted },
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Evaluate access control compliance
+   */
+  private evaluateAccessControl(
+    rule: ComplianceRule,
+    auditLog: AuditLog
+  ): ComplianceViolation | null {
+    if (
+      auditLog.action !== 'access_denied' &&
+      auditLog.action !== 'unauthorized_access'
+    ) {
+      return null;
+    }
+
+    const maxFailedAttempts = rule.config.maxFailedAttempts;
+    const timeWindow = rule.config.timeWindow; // in minutes
+
+    if (auditLog.userId) {
+      const cutoffTime = new Date();
+      cutoffTime.setMinutes(cutoffTime.getMinutes() - timeWindow);
+
+      const recentFailedAttempts = this.auditLogs.filter(
+        (log) =>
+          log.userId === auditLog.userId &&
+          log.action === 'access_denied' &&
+          log.timestamp > cutoffTime
+      );
+
+      if (recentFailedAttempts.length >= maxFailedAttempts) {
+        return {
+          id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          ruleId: rule.id,
+          userId: auditLog.userId,
+          severity: rule.severity,
+          message: `Multiple failed access attempts: ${recentFailedAttempts.length} in ${timeWindow} minutes`,
+          timestamp: new Date(),
+          resolved: false,
+          metadata: {
+            failedAttempts: recentFailedAttempts.length,
+            maxFailedAttempts,
+            timeWindow,
+          },
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Generate compliance report
+   */
+  async generateComplianceReport(
+    type: 'security' | 'privacy' | 'access' | 'audit',
+    startDate: Date,
+    endDate: Date
+  ): Promise<ComplianceReport> {
+    const reportId = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const periodViolations = Array.from(this.violations.values()).filter(
+      (v) => v.timestamp >= startDate && v.timestamp <= endDate
+    );
+
+    const summary = {
+      totalViolations: periodViolations.length,
+      criticalViolations: periodViolations.filter(
+        (v) => v.severity === 'critical'
+      ).length,
+      highViolations: periodViolations.filter((v) => v.severity === 'high')
+        .length,
+      mediumViolations: periodViolations.filter((v) => v.severity === 'medium')
+        .length,
+      lowViolations: periodViolations.filter((v) => v.severity === 'low')
+        .length,
+    };
+
+    const recommendations = this.generateRecommendations(periodViolations);
+
+    const report: ComplianceReport = {
+      id: reportId,
+      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Compliance Report`,
+      type,
+      generatedAt: new Date(),
+      period: { start: startDate, end: endDate },
+      summary,
+      violations: periodViolations,
+      recommendations,
+    };
+
+    this.reports.set(reportId, report);
+    return report;
+  }
+
+  /**
+   * Generate compliance recommendations
+   */
+  private generateRecommendations(violations: ComplianceViolation[]): string[] {
+    const recommendations: string[] = [];
+    const violationTypes = new Set(violations.map((v) => v.ruleId));
+
+    if (violationTypes.has('password_policy')) {
+      recommendations.push('Strengthen password policy enforcement');
+      recommendations.push('Implement password complexity requirements');
+    }
+
+    if (violationTypes.has('session_timeout')) {
+      recommendations.push('Review and adjust session timeout settings');
+      recommendations.push('Implement automatic session termination');
+    }
+
+    if (violationTypes.has('access_control')) {
+      recommendations.push('Implement account lockout policies');
+      recommendations.push('Add multi-factor authentication');
+    }
+
+    if (violationTypes.has('data_encryption')) {
+      recommendations.push('Ensure all sensitive data is encrypted');
+      recommendations.push('Implement encryption key management');
+    }
+
+    if (violations.filter((v) => v.severity === 'critical').length > 0) {
+      recommendations.push(
+        'Address critical compliance violations immediately'
+      );
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Resolve a compliance violation
+   */
+  async resolveViolation(
+    violationId: string,
+    resolvedBy: string
+  ): Promise<boolean> {
+    const violation = this.violations.get(violationId);
+    if (!violation) {
+      return false;
+    }
+
+    violation.resolved = true;
+    violation.resolvedAt = new Date();
+    violation.resolvedBy = resolvedBy;
+
+    return true;
+  }
+
+  /**
+   * Create a new compliance rule
+   */
+  createRule(rule: Omit<ComplianceRule, 'id'>): ComplianceRule {
+    const id = `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newRule: ComplianceRule = { ...rule, id };
+    this.rules.set(id, newRule);
+    return newRule;
+  }
+
+  /**
+   * Get all compliance violations
+   */
+  getViolations(filters?: {
+    severity?: string;
+    resolved?: boolean;
+    userId?: string;
+    ruleId?: string;
+  }): ComplianceViolation[] {
+    let violations = Array.from(this.violations.values());
+
+    if (filters) {
+      if (filters.severity) {
+        violations = violations.filter((v) => v.severity === filters.severity);
+      }
+      if (filters.resolved !== undefined) {
+        violations = violations.filter((v) => v.resolved === filters.resolved);
+      }
+      if (filters.userId) {
+        violations = violations.filter((v) => v.userId === filters.userId);
+      }
+      if (filters.ruleId) {
+        violations = violations.filter((v) => v.ruleId === filters.ruleId);
+      }
+    }
+
+    return violations;
+  }
+
+  /**
+   * Get audit logs
+   */
+  getAuditLogs(filters?: {
+    userId?: string;
+    action?: string;
+    resource?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): AuditLog[] {
+    let logs = [...this.auditLogs];
+
+    if (filters) {
+      if (filters.userId) {
+        logs = logs.filter((log) => log.userId === filters.userId);
+      }
+      if (filters.action) {
+        logs = logs.filter((log) => log.action === filters.action);
+      }
+      if (filters.resource) {
+        logs = logs.filter((log) => log.resource === filters.resource);
+      }
+      if (filters.startDate) {
+        logs = logs.filter((log) => log.timestamp >= filters.startDate!);
+      }
+      if (filters.endDate) {
+        logs = logs.filter((log) => log.timestamp <= filters.endDate!);
+      }
+    }
+
+    return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  /**
+   * Clean up old audit logs
+   */
+  private cleanupOldAuditLogs(): void {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.config.auditRetentionDays);
+
+    this.auditLogs = this.auditLogs.filter((log) => log.timestamp > cutoffDate);
+  }
+
+  /**
+   * Initialize default compliance rules
+   */
+  private initializeDefaultRules(): void {
+    const defaultRules: Omit<ComplianceRule, 'id'>[] = [
+      {
+        name: 'Password Policy',
+        type: 'password_policy',
+        description: 'Enforce strong password requirements',
+        enabled: this.config.enablePasswordPolicy,
+        severity: 'high',
+        config: {
+          minLength: 8,
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumbers: true,
+          requireSymbols: true,
+          forbiddenPasswords: ['password', '123456', 'admin', 'qwerty'],
+        },
+      },
+      {
+        name: 'Session Timeout',
+        type: 'session_timeout',
+        description: 'Enforce session timeout limits',
+        enabled: this.config.enableSessionMonitoring,
+        severity: 'medium',
+        config: {
+          maxDuration: 480, // 8 hours in minutes
+        },
+      },
+      {
+        name: 'Audit Retention',
+        type: 'audit_retention',
+        description: 'Ensure audit logs are retained for required period',
+        enabled: true,
+        severity: 'high',
+        config: {
+          retentionDays: this.config.auditRetentionDays,
+        },
+      },
+      {
+        name: 'Data Encryption',
+        type: 'data_encryption',
+        description: 'Ensure sensitive data is encrypted',
+        enabled: this.config.enableDataEncryption,
+        severity: 'critical',
+        config: {
+          requireEncryption: true,
+        },
+      },
+      {
+        name: 'Access Control',
+        type: 'access_control',
+        description: 'Monitor and control access attempts',
+        enabled: this.config.enableAccessControl,
+        severity: 'high',
+        config: {
+          maxFailedAttempts: 5,
+          timeWindow: 15, // minutes
+        },
+      },
+    ];
+
+    defaultRules.forEach((rule) => {
+      this.createRule(rule);
+    });
+  }
+}
+
+export function createComplianceService(
+  config: ComplianceConfig
+): ComplianceService {
+  return new ComplianceService(config);
+}

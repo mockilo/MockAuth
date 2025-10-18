@@ -119,7 +119,7 @@ function createUserRoutes(userService, authService, webhookService, auditService
             let users = yield userService.getAllUsers();
             // Filter by role
             if (role) {
-                users = users.filter(user => user.roles.includes(role));
+                users = users.filter((user) => user.roles.includes(role));
             }
             // Search
             if (search) {
@@ -130,7 +130,7 @@ function createUserRoutes(userService, authService, webhookService, auditService
             const endIndex = startIndex + limit;
             const paginatedUsers = users.slice(startIndex, endIndex);
             // Remove passwords from response
-            const sanitizedUsers = paginatedUsers.map(user => {
+            const sanitizedUsers = paginatedUsers.map((user) => {
                 const { password } = user, sanitizedUser = __rest(user, ["password"]);
                 return sanitizedUser;
             });
@@ -357,7 +357,7 @@ function createUserRoutes(userService, authService, webhookService, auditService
             const limit = parseInt(req.query.limit) || 10;
             const users = yield userService.searchUsers(query, limit);
             // Remove passwords from response
-            const sanitizedUsers = users.map(user => {
+            const sanitizedUsers = users.map((user) => {
                 const { password } = user, sanitizedUser = __rest(user, ["password"]);
                 return sanitizedUser;
             });

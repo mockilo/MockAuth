@@ -1,0 +1,452 @@
+[
+  {
+    "id": 1,
+    "email": "user1@example.com",
+    "username": "user1",
+    "firstName": "User 1",
+    "lastName": "Example",
+    "role": "admin",
+    "createdAt": "2025-10-08T11:39:19.499Z"
+  },
+  {
+    "id": 2,
+    "email": "user2@example.com",
+    "username": "user2",
+    "firstName": "User 2",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 3,
+    "email": "user3@example.com",
+    "username": "user3",
+    "firstName": "User 3",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 4,
+    "email": "user4@example.com",
+    "username": "user4",
+    "firstName": "User 4",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 5,
+    "email": "user5@example.com",
+    "username": "user5",
+    "firstName": "User 5",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 6,
+    "email": "user6@example.com",
+    "username": "user6",
+    "firstName": "User 6",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 7,
+    "email": "user7@example.com",
+    "username": "user7",
+    "firstName": "User 7",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 8,
+    "email": "user8@example.com",
+    "username": "user8",
+    "firstName": "User 8",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 9,
+    "email": "user9@example.com",
+    "username": "user9",
+    "firstName": "User 9",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 10,
+    "email": "user10@example.com",
+    "username": "user10",
+    "firstName": "User 10",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 11,
+    "email": "user11@example.com",
+    "username": "user11",
+    "firstName": "User 11",
+    "lastName": "Example",
+    "role": "admin",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 12,
+    "email": "user12@example.com",
+    "username": "user12",
+    "firstName": "User 12",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 13,
+    "email": "user13@example.com",
+    "username": "user13",
+    "firstName": "User 13",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 14,
+    "email": "user14@example.com",
+    "username": "user14",
+    "firstName": "User 14",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 15,
+    "email": "user15@example.com",
+    "username": "user15",
+    "firstName": "User 15",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 16,
+    "email": "user16@example.com",
+    "username": "user16",
+    "firstName": "User 16",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 17,
+    "email": "user17@example.com",
+    "username": "user17",
+    "firstName": "User 17",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 18,
+    "email": "user18@example.com",
+    "username": "user18",
+    "firstName": "User 18",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 19,
+    "email": "user19@example.com",
+    "username": "user19",
+    "firstName": "User 19",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 20,
+    "email": "user20@example.com",
+    "username": "user20",
+    "firstName": "User 20",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 21,
+    "email": "user21@example.com",
+    "username": "user21",
+    "firstName": "User 21",
+    "lastName": "Example",
+    "role": "admin",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 22,
+    "email": "user22@example.com",
+    "username": "user22",
+    "firstName": "User 22",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 23,
+    "email": "user23@example.com",
+    "username": "user23",
+    "firstName": "User 23",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 24,
+    "email": "user24@example.com",
+    "username": "user24",
+    "firstName": "User 24",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 25,
+    "email": "user25@example.com",
+    "username": "user25",
+    "firstName": "User 25",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 26,
+    "email": "user26@example.com",
+    "username": "user26",
+    "firstName": "User 26",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 27,
+    "email": "user27@example.com",
+    "username": "user27",
+    "firstName": "User 27",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 28,
+    "email": "user28@example.com",
+    "username": "user28",
+    "firstName": "User 28",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 29,
+    "email": "user29@example.com",
+    "username": "user29",
+    "firstName": "User 29",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 30,
+    "email": "user30@example.com",
+    "username": "user30",
+    "firstName": "User 30",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 31,
+    "email": "user31@example.com",
+    "username": "user31",
+    "firstName": "User 31",
+    "lastName": "Example",
+    "role": "admin",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 32,
+    "email": "user32@example.com",
+    "username": "user32",
+    "firstName": "User 32",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 33,
+    "email": "user33@example.com",
+    "username": "user33",
+    "firstName": "User 33",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 34,
+    "email": "user34@example.com",
+    "username": "user34",
+    "firstName": "User 34",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 35,
+    "email": "user35@example.com",
+    "username": "user35",
+    "firstName": "User 35",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 36,
+    "email": "user36@example.com",
+    "username": "user36",
+    "firstName": "User 36",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 37,
+    "email": "user37@example.com",
+    "username": "user37",
+    "firstName": "User 37",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 38,
+    "email": "user38@example.com",
+    "username": "user38",
+    "firstName": "User 38",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 39,
+    "email": "user39@example.com",
+    "username": "user39",
+    "firstName": "User 39",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 40,
+    "email": "user40@example.com",
+    "username": "user40",
+    "firstName": "User 40",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 41,
+    "email": "user41@example.com",
+    "username": "user41",
+    "firstName": "User 41",
+    "lastName": "Example",
+    "role": "admin",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 42,
+    "email": "user42@example.com",
+    "username": "user42",
+    "firstName": "User 42",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 43,
+    "email": "user43@example.com",
+    "username": "user43",
+    "firstName": "User 43",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 44,
+    "email": "user44@example.com",
+    "username": "user44",
+    "firstName": "User 44",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 45,
+    "email": "user45@example.com",
+    "username": "user45",
+    "firstName": "User 45",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 46,
+    "email": "user46@example.com",
+    "username": "user46",
+    "firstName": "User 46",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 47,
+    "email": "user47@example.com",
+    "username": "user47",
+    "firstName": "User 47",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 48,
+    "email": "user48@example.com",
+    "username": "user48",
+    "firstName": "User 48",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 49,
+    "email": "user49@example.com",
+    "username": "user49",
+    "firstName": "User 49",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  },
+  {
+    "id": 50,
+    "email": "user50@example.com",
+    "username": "user50",
+    "firstName": "User 50",
+    "lastName": "Example",
+    "role": "user",
+    "createdAt": "2025-10-08T11:39:19.500Z"
+  }
+]

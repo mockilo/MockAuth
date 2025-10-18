@@ -9,7 +9,7 @@ const PORT = 3000;
 const mockAuth = new MockAuth({
   port: 3001,
   baseUrl: 'http://localhost:3001',
-  jwtSecret: 'your-secret-key',
+  jwtSecret: 'your-secret-key-must-be-at-least-32-characters-long-for-security',
   users: [
     {
       email: 'admin@example.com',

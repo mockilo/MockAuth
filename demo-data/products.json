@@ -1,0 +1,602 @@
+[
+  {
+    "id": 1,
+    "name": "Product 1",
+    "price": 47,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 2,
+    "name": "Product 2",
+    "price": 16,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 3,
+    "name": "Product 3",
+    "price": 92,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 4,
+    "name": "Product 4",
+    "price": 20,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 5,
+    "name": "Product 5",
+    "price": 59,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 6,
+    "name": "Product 6",
+    "price": 34,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 7,
+    "name": "Product 7",
+    "price": 102,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 8,
+    "name": "Product 8",
+    "price": 96,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 9,
+    "name": "Product 9",
+    "price": 41,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 10,
+    "name": "Product 10",
+    "price": 50,
+    "category": "electronics",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 11,
+    "name": "Product 11",
+    "price": 65,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 12,
+    "name": "Product 12",
+    "price": 33,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 13,
+    "name": "Product 13",
+    "price": 47,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 14,
+    "name": "Product 14",
+    "price": 38,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 15,
+    "name": "Product 15",
+    "price": 42,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 16,
+    "name": "Product 16",
+    "price": 82,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 17,
+    "name": "Product 17",
+    "price": 73,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 18,
+    "name": "Product 18",
+    "price": 40,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 19,
+    "name": "Product 19",
+    "price": 45,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 20,
+    "name": "Product 20",
+    "price": 47,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 21,
+    "name": "Product 21",
+    "price": 35,
+    "category": "books",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 22,
+    "name": "Product 22",
+    "price": 81,
+    "category": "electronics",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 23,
+    "name": "Product 23",
+    "price": 15,
+    "category": "clothing",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 24,
+    "name": "Product 24",
+    "price": 78,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 25,
+    "name": "Product 25",
+    "price": 99,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 26,
+    "name": "Product 26",
+    "price": 95,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 27,
+    "name": "Product 27",
+    "price": 92,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 28,
+    "name": "Product 28",
+    "price": 109,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 29,
+    "name": "Product 29",
+    "price": 53,
+    "category": "clothing",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 30,
+    "name": "Product 30",
+    "price": 97,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 31,
+    "name": "Product 31",
+    "price": 54,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 32,
+    "name": "Product 32",
+    "price": 11,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 33,
+    "name": "Product 33",
+    "price": 64,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 34,
+    "name": "Product 34",
+    "price": 91,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 35,
+    "name": "Product 35",
+    "price": 98,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 36,
+    "name": "Product 36",
+    "price": 27,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 37,
+    "name": "Product 37",
+    "price": 42,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 38,
+    "name": "Product 38",
+    "price": 88,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 39,
+    "name": "Product 39",
+    "price": 87,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 40,
+    "name": "Product 40",
+    "price": 98,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 41,
+    "name": "Product 41",
+    "price": 68,
+    "category": "clothing",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 42,
+    "name": "Product 42",
+    "price": 48,
+    "category": "books",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 43,
+    "name": "Product 43",
+    "price": 68,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 44,
+    "name": "Product 44",
+    "price": 105,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 45,
+    "name": "Product 45",
+    "price": 61,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 46,
+    "name": "Product 46",
+    "price": 63,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 47,
+    "name": "Product 47",
+    "price": 57,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 48,
+    "name": "Product 48",
+    "price": 84,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 49,
+    "name": "Product 49",
+    "price": 57,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 50,
+    "name": "Product 50",
+    "price": 46,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 51,
+    "name": "Product 51",
+    "price": 60,
+    "category": "books",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 52,
+    "name": "Product 52",
+    "price": 100,
+    "category": "electronics",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 53,
+    "name": "Product 53",
+    "price": 46,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 54,
+    "name": "Product 54",
+    "price": 52,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 55,
+    "name": "Product 55",
+    "price": 97,
+    "category": "electronics",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 56,
+    "name": "Product 56",
+    "price": 78,
+    "category": "clothing",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 57,
+    "name": "Product 57",
+    "price": 19,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 58,
+    "name": "Product 58",
+    "price": 60,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 59,
+    "name": "Product 59",
+    "price": 29,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 60,
+    "name": "Product 60",
+    "price": 101,
+    "category": "books",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 61,
+    "name": "Product 61",
+    "price": 43,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 62,
+    "name": "Product 62",
+    "price": 82,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 63,
+    "name": "Product 63",
+    "price": 48,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 64,
+    "name": "Product 64",
+    "price": 97,
+    "category": "electronics",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 65,
+    "name": "Product 65",
+    "price": 53,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 66,
+    "name": "Product 66",
+    "price": 76,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 67,
+    "name": "Product 67",
+    "price": 92,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 68,
+    "name": "Product 68",
+    "price": 71,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 69,
+    "name": "Product 69",
+    "price": 94,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 70,
+    "name": "Product 70",
+    "price": 63,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 71,
+    "name": "Product 71",
+    "price": 17,
+    "category": "clothing",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 72,
+    "name": "Product 72",
+    "price": 38,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 73,
+    "name": "Product 73",
+    "price": 13,
+    "category": "electronics",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 74,
+    "name": "Product 74",
+    "price": 30,
+    "category": "clothing",
+    "inStock": false,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  },
+  {
+    "id": 75,
+    "name": "Product 75",
+    "price": 35,
+    "category": "books",
+    "inStock": true,
+    "createdAt": "2025-10-08T11:39:19.501Z"
+  }
+]

@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createHealthRoutes = void 0;
 const express_1 = require("express");
+const caching_1 = require("../middleware/caching");
+const performance_1 = require("../middleware/performance");
 function createHealthRoutes() {
     const router = (0, express_1.Router)();
-    // Basic health check
-    router.get('/', (req, res) => {
+    // Basic health check with caching
+    router.get('/', (0, caching_1.cacheMiddleware)({ ttl: 30000 }), (req, res) => {
         const healthCheck = {
             status: 'healthy',
             timestamp: new Date(),
@@ -20,7 +22,7 @@ function createHealthRoutes() {
         };
         res.json({
             success: true,
-            data: healthCheck,
+            data: Object.assign(Object.assign({}, healthCheck), { performance: performance_1.performanceMonitor.getMetrics() }),
         });
     });
     // Detailed health check

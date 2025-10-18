@@ -1,6 +1,8 @@
-import { WebhookConfig, WebhookEvent } from '../types';
+import { WebhookConfig, WebhookEvent, WebhookService } from '../types';
 
-export function createWebhookService(config?: WebhookConfig) {
+export function createWebhookService(
+  config?: WebhookConfig
+): WebhookService | null {
   if (!config) {
     return null;
   }
@@ -16,7 +18,7 @@ export function createWebhookService(config?: WebhookConfig) {
 
         // In a real implementation, you would send HTTP requests to the webhook URL
         console.log(`Webhook ${eventName} sent:`, payload);
-        
+
         // Simulate webhook sending
         // await fetch(config.url, {
         //   method: 'POST',

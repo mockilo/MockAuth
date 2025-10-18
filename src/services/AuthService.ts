@@ -1,6 +1,26 @@
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { User, Session, TokenPayload, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, MFAConfig, MFASetupResponse, MFAVerifyRequest, MFAVerifyResponse, PasswordResetRequest, PasswordResetResponse, PasswordResetVerifyRequest, PasswordResetCompleteRequest, PasswordResetCompleteResponse, AccountLockoutConfig, UnlockAccountRequest, UnlockAccountResponse } from '../types';
+import {
+  User,
+  Session,
+  TokenPayload,
+  LoginRequest,
+  LoginResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  MFAConfig,
+  MFASetupResponse,
+  MFAVerifyRequest,
+  MFAVerifyResponse,
+  PasswordResetRequest,
+  PasswordResetResponse,
+  PasswordResetVerifyRequest,
+  PasswordResetCompleteRequest,
+  PasswordResetCompleteResponse,
+  AccountLockoutConfig,
+  UnlockAccountRequest,
+  UnlockAccountResponse,
+} from '../types';
 import { UserService } from './UserService';
 import { MFAService } from './MFAService';
 import { PasswordResetService } from './PasswordResetService';
@@ -26,20 +46,33 @@ export class AuthService {
 
   async login(request: LoginRequest): Promise<LoginResponse> {
     // Check if account is locked before attempting authentication
-    const lockoutStatus = await this.lockoutService.isAccountLocked(request.email);
+    const lockoutStatus = await this.lockoutService.isAccountLocked(
+      request.email
+    );
     if (lockoutStatus.isLocked) {
-      throw new Error(`Account is locked until ${lockoutStatus.lockedUntil?.toISOString()}`);
+      throw new Error(
+        `Account is locked until ${lockoutStatus.lockedUntil?.toISOString()}`
+      );
     }
 
-    const user = await this.userService.authenticateUser(request.email, request.password);
-    
+    const user = await this.userService.authenticateUser(
+      request.email,
+      request.password
+    );
+
     if (!user) {
       // Record failed attempt
-      const lockoutResult = await this.lockoutService.recordFailedAttempt(request.email);
+      const lockoutResult = await this.lockoutService.recordFailedAttempt(
+        request.email
+      );
       if (lockoutResult.isLocked) {
-        throw new Error(`Account locked due to too many failed attempts. Try again after ${lockoutResult.lockedUntil?.toISOString()}`);
+        throw new Error(
+          `Account locked due to too many failed attempts. Try again after ${lockoutResult.lockedUntil?.toISOString()}`
+        );
       }
-      throw new Error(`Invalid credentials. ${lockoutResult.attemptsRemaining} attempts remaining.`);
+      throw new Error(
+        `Invalid credentials. ${lockoutResult.attemptsRemaining} attempts remaining.`
+      );
     }
 
     if (!user.isActive) {
@@ -79,7 +112,7 @@ export class AuthService {
     permissions?: string[];
   }): Promise<LoginResponse> {
     const user = await this.userService.createUser(userData);
-    
+
     // Create session
     const session = await this.createSession(user, {
       device: 'Unknown',
@@ -109,10 +142,10 @@ export class AuthService {
 
     // Remove session
     this.sessions.delete(sessionId);
-    
+
     // Remove from user sessions
     const userSessions = this.userSessions.get(session.userId) || [];
-    const updatedUserSessions = userSessions.filter(id => id !== sessionId);
+    const updatedUserSessions = userSessions.filter((id) => id !== sessionId);
     if (updatedUserSessions.length > 0) {
       this.userSessions.set(session.userId, updatedUserSessions);
     } else {
@@ -125,7 +158,9 @@ export class AuthService {
     return true;
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest
+  ): Promise<RefreshTokenResponse> {
     const sessionId = this.refreshTokens.get(request.refreshToken);
     if (!sessionId) {
       throw new Error('Invalid refresh token');
@@ -154,7 +189,7 @@ export class AuthService {
   async verifyToken(token: string): Promise<User | null> {
     try {
       const payload = jwt.verify(token, this.jwtSecret) as TokenPayload;
-      
+
       // Check if session exists and is active
       const session = this.sessions.get(payload.sessionId);
       if (!session || !session.isActive) {
@@ -183,13 +218,20 @@ export class AuthService {
   }
 
   async getCurrentUser(token: string): Promise<User | null> {
-    return this.verifyToken(token);
+    const user = await this.verifyToken(token);
+    if (!user) {
+      return null;
+    }
+
+    // Return user without password for security
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword as User;
   }
 
   async getUserSessions(userId: string): Promise<Session[]> {
     const sessionIds = this.userSessions.get(userId) || [];
     return sessionIds
-      .map(id => this.sessions.get(id))
+      .map((id) => this.sessions.get(id))
       .filter((session): session is Session => session !== undefined);
   }
 
@@ -215,14 +257,19 @@ export class AuthService {
     return revokedCount;
   }
 
-  private async createSession(user: User, metadata: {
-    device?: string;
-    ipAddress?: string;
-    userAgent?: string;
-  }): Promise<Session> {
+  private async createSession(
+    user: User,
+    metadata: {
+      device?: string;
+      ipAddress?: string;
+      userAgent?: string;
+    }
+  ): Promise<Session> {
     const sessionId = uuidv4();
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + this.parseExpiry(this.tokenExpiry));
+    const expiresAt = new Date(
+      now.getTime() + this.parseExpiry(this.tokenExpiry)
+    );
 
     const session: Session = {
       id: sessionId,
@@ -257,7 +304,9 @@ export class AuthService {
       permissions: user.permissions,
       sessionId,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + this.parseExpiry(this.tokenExpiry) / 1000,
+      exp:
+        Math.floor(Date.now() / 1000) +
+        this.parseExpiry(this.tokenExpiry) / 1000,
     };
 
     return jwt.sign(payload, this.jwtSecret);
@@ -279,11 +328,16 @@ export class AuthService {
     const unit = match[2];
 
     switch (unit) {
-      case 's': return value * 1000;
-      case 'm': return value * 60 * 1000;
-      case 'h': return value * 60 * 60 * 1000;
-      case 'd': return value * 24 * 60 * 60 * 1000;
-      default: return 24 * 60 * 60 * 1000;
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 24 * 60 * 60 * 1000;
     }
   }
 
@@ -314,11 +368,11 @@ export class AuthService {
   }> {
     const now = new Date();
     const sessions = Array.from(this.sessions.values());
-    
+
     const stats = {
       total: sessions.length,
-      active: sessions.filter(s => s.isActive && s.expiresAt > now).length,
-      expired: sessions.filter(s => s.expiresAt <= now).length,
+      active: sessions.filter((s) => s.isActive && s.expiresAt > now).length,
+      expired: sessions.filter((s) => s.expiresAt <= now).length,
       byUser: {} as Record<string, number>,
     };
 
@@ -345,12 +399,17 @@ export class AuthService {
       throw new Error('MFA is already enabled for this user');
     }
 
-    const mfaSetup = MFAService.setupMFA(userId, user.email);
-    const mfaConfig = MFAService.createMFAConfig(mfaSetup.secret, mfaSetup.backupCodes);
+    const mfaSetup = MFAService.setupMFA(user);
+    const mfaConfig = {
+      enabled: false,
+      secret: mfaSetup.secret,
+      backupCodes: mfaSetup.backupCodes,
+      createdAt: new Date(),
+    };
 
     // Update user with MFA config (but don't enable yet)
     await this.userService.updateUser(userId, {
-      mfa: mfaConfig
+      mfa: mfaConfig,
     });
 
     return mfaSetup;
@@ -359,7 +418,10 @@ export class AuthService {
   /**
    * Verify MFA setup code and enable MFA
    */
-  async verifyMFASetup(userId: string, request: MFAVerifyRequest): Promise<MFAVerifyResponse> {
+  async verifyMFASetup(
+    userId: string,
+    request: MFAVerifyRequest
+  ): Promise<MFAVerifyResponse> {
     const user = await this.userService.getUserById(userId);
     if (!user || !user.mfa?.secret) {
       throw new Error('MFA setup not found');
@@ -373,9 +435,13 @@ export class AuthService {
     let remainingBackupCodes = user.mfa.backupCodes || [];
 
     if (request.backupCode) {
-      const result = MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
-      isValid = result.valid;
-      remainingBackupCodes = result.remainingCodes;
+      const backupResult = MFAService.verifyBackupCode(
+        user.mfa.backupCodes || [],
+        request.backupCode
+      );
+      isValid = backupResult.valid;
+      // Update remaining codes after verification
+      remainingBackupCodes = user.mfa.backupCodes || [];
     } else {
       isValid = MFAService.verifyTOTP(user.mfa.secret, request.code);
     }
@@ -392,19 +458,22 @@ export class AuthService {
     };
 
     await this.userService.updateUser(userId, {
-      mfa: updatedMfaConfig
+      mfa: updatedMfaConfig,
     });
 
     return {
       success: true,
-      backupCodes: remainingBackupCodes
+      backupCodes: remainingBackupCodes,
     };
   }
 
   /**
    * Verify MFA code during login
    */
-  async verifyMFA(userId: string, request: MFAVerifyRequest): Promise<MFAVerifyResponse> {
+  async verifyMFA(
+    userId: string,
+    request: MFAVerifyRequest
+  ): Promise<MFAVerifyResponse> {
     const user = await this.userService.getUserById(userId);
     if (!user || !user.mfa?.enabled) {
       throw new Error('MFA not enabled for this user');
@@ -414,9 +483,13 @@ export class AuthService {
     let remainingBackupCodes = user.mfa.backupCodes || [];
 
     if (request.backupCode) {
-      const result = MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
-      isValid = result.valid;
-      remainingBackupCodes = result.remainingCodes;
+      const backupResult = MFAService.verifyBackupCode(
+        user.mfa.backupCodes || [],
+        request.backupCode
+      );
+      isValid = backupResult.valid;
+      // Update remaining codes after verification
+      remainingBackupCodes = user.mfa.backupCodes || [];
     } else {
       isValid = MFAService.verifyTOTP(user.mfa.secret!, request.code);
     }
@@ -426,7 +499,10 @@ export class AuthService {
     }
 
     // Update MFA config with new backup codes if used
-    if (request.backupCode && remainingBackupCodes.length !== user.mfa.backupCodes?.length) {
+    if (
+      request.backupCode &&
+      remainingBackupCodes.length !== user.mfa.backupCodes?.length
+    ) {
       const updatedMfaConfig: MFAConfig = {
         ...user.mfa,
         backupCodes: remainingBackupCodes,
@@ -434,13 +510,13 @@ export class AuthService {
       };
 
       await this.userService.updateUser(userId, {
-        mfa: updatedMfaConfig
+        mfa: updatedMfaConfig,
       });
     }
 
     return {
       success: true,
-      backupCodes: remainingBackupCodes
+      backupCodes: remainingBackupCodes,
     };
   }
 
@@ -457,9 +533,9 @@ export class AuthService {
       throw new Error('MFA is not enabled for this user');
     }
 
-    const disabledMfaConfig = MFAService.disableMFA();
+    const disabledMfaConfig = MFAService.disableMFA(user);
     await this.userService.updateUser(userId, {
-      mfa: disabledMfaConfig
+      mfa: disabledMfaConfig,
     });
 
     return true;
@@ -479,9 +555,9 @@ export class AuthService {
     }
 
     return {
-      enabled: MFAService.isMFAEnabled(user.mfa),
-      backupCodesCount: MFAService.getRemainingBackupCodes(user.mfa),
-      lastUsed: user.mfa?.lastUsed
+      enabled: MFAService.isMFAEnabled(user),
+      backupCodesCount: MFAService.getRemainingBackupCodes(user),
+      lastUsed: user.mfa?.lastUsed,
     };
   }
 
@@ -501,7 +577,7 @@ export class AuthService {
     };
 
     await this.userService.updateUser(userId, {
-      mfa: updatedMfaConfig
+      mfa: updatedMfaConfig,
     });
 
     return newBackupCodes;
@@ -512,23 +588,30 @@ export class AuthService {
   /**
    * Request password reset
    */
-  async requestPasswordReset(request: PasswordResetRequest): Promise<PasswordResetResponse> {
+  async requestPasswordReset(
+    request: PasswordResetRequest
+  ): Promise<PasswordResetResponse> {
     return this.passwordResetService.requestPasswordReset(request);
   }
 
   /**
    * Verify password reset token
    */
-  async verifyPasswordResetToken(request: PasswordResetVerifyRequest): Promise<{ valid: boolean; message: string }> {
+  async verifyPasswordResetToken(
+    request: PasswordResetVerifyRequest
+  ): Promise<{ valid: boolean; message: string }> {
     return this.passwordResetService.verifyResetToken(request);
   }
 
   /**
    * Complete password reset
    */
-  async completePasswordReset(request: PasswordResetCompleteRequest): Promise<PasswordResetCompleteResponse> {
-    const result = await this.passwordResetService.completePasswordReset(request);
-    
+  async completePasswordReset(
+    request: PasswordResetCompleteRequest
+  ): Promise<PasswordResetCompleteResponse> {
+    const result =
+      await this.passwordResetService.completePasswordReset(request);
+
     if (result.success) {
       // In a real implementation, you would update the user's password here
       // For MockAuth, we'll just return success
@@ -561,7 +644,10 @@ export class AuthService {
   /**
    * Unlock an account (admin function)
    */
-  async unlockAccount(request: UnlockAccountRequest, unlockedBy: string): Promise<UnlockAccountResponse> {
+  async unlockAccount(
+    request: UnlockAccountRequest,
+    unlockedBy: string
+  ): Promise<UnlockAccountResponse> {
     return this.lockoutService.unlockAccount(request, unlockedBy);
   }
 
@@ -621,14 +707,17 @@ export class AuthService {
   /**
    * Get sessions by device type
    */
-  async getSessionsByDevice(userId: string, deviceType?: string): Promise<Session[]> {
+  async getSessionsByDevice(
+    userId: string,
+    deviceType?: string
+  ): Promise<Session[]> {
     const sessions = await this.getUserSessions(userId);
-    
+
     if (!deviceType) {
       return sessions;
     }
 
-    return sessions.filter(session => 
+    return sessions.filter((session) =>
       session.device?.toLowerCase().includes(deviceType.toLowerCase())
     );
   }
@@ -646,29 +735,35 @@ export class AuthService {
   }> {
     const sessions = await this.getUserSessions(userId);
     const now = new Date();
-    
-    const activeSessions = sessions.filter(s => s.isActive && s.expiresAt > now);
-    
+
+    const activeSessions = sessions.filter(
+      (s) => s.isActive && s.expiresAt > now
+    );
+
     const byDevice: Record<string, number> = {};
     const byLocation: Record<string, number> = {};
-    
-    sessions.forEach(session => {
+
+    sessions.forEach((session) => {
       const device = session.device || 'Unknown';
       const location = session.ipAddress || 'Unknown';
-      
+
       byDevice[device] = (byDevice[device] || 0) + 1;
       byLocation[location] = (byLocation[location] || 0) + 1;
     });
 
     const totalDuration = sessions.reduce((sum, session) => {
-      return sum + (session.lastActivityAt.getTime() - session.createdAt.getTime());
+      return (
+        sum + (session.lastActivityAt.getTime() - session.createdAt.getTime())
+      );
     }, 0);
 
-    const averageSessionDuration = sessions.length > 0 ? totalDuration / sessions.length : 0;
+    const averageSessionDuration =
+      sessions.length > 0 ? totalDuration / sessions.length : 0;
 
-    const lastActivity = sessions.length > 0 
-      ? new Date(Math.max(...sessions.map(s => s.lastActivityAt.getTime())))
-      : null;
+    const lastActivity =
+      sessions.length > 0
+        ? new Date(Math.max(...sessions.map((s) => s.lastActivityAt.getTime())))
+        : null;
 
     return {
       totalSessions: sessions.length,
@@ -676,14 +771,17 @@ export class AuthService {
       byDevice,
       byLocation,
       averageSessionDuration,
-      lastActivity
+      lastActivity,
     };
   }
 
   /**
    * Revoke sessions by device type
    */
-  async revokeSessionsByDevice(userId: string, deviceType: string): Promise<number> {
+  async revokeSessionsByDevice(
+    userId: string,
+    deviceType: string
+  ): Promise<number> {
     const sessions = await this.getSessionsByDevice(userId, deviceType);
     let revokedCount = 0;
 
@@ -699,7 +797,10 @@ export class AuthService {
   /**
    * Revoke all sessions except current
    */
-  async revokeAllOtherSessions(userId: string, currentSessionId: string): Promise<number> {
+  async revokeAllOtherSessions(
+    userId: string,
+    currentSessionId: string
+  ): Promise<number> {
     const sessions = await this.getUserSessions(userId);
     let revokedCount = 0;
 
@@ -727,21 +828,24 @@ export class AuthService {
   }> {
     const now = new Date();
     const allSessions = Array.from(this.sessions.values());
-    
-    const activeSessions = allSessions.filter(s => s.isActive && s.expiresAt > now);
-    const expiredSessions = allSessions.filter(s => s.expiresAt <= now);
-    
+
+    const activeSessions = allSessions.filter(
+      (s) => s.isActive && s.expiresAt > now
+    );
+    const expiredSessions = allSessions.filter((s) => s.expiresAt <= now);
+
     const byDevice: Record<string, number> = {};
     const byUser: Record<string, number> = {};
-    
-    allSessions.forEach(session => {
+
+    allSessions.forEach((session) => {
       const device = session.device || 'Unknown';
       byDevice[device] = (byDevice[device] || 0) + 1;
       byUser[session.userId] = (byUser[session.userId] || 0) + 1;
     });
 
     const uniqueUsers = Object.keys(byUser).length;
-    const averageSessionsPerUser = uniqueUsers > 0 ? allSessions.length / uniqueUsers : 0;
+    const averageSessionsPerUser =
+      uniqueUsers > 0 ? allSessions.length / uniqueUsers : 0;
 
     return {
       totalSessions: allSessions.length,
@@ -749,7 +853,7 @@ export class AuthService {
       expiredSessions: expiredSessions.length,
       byDevice,
       byUser,
-      averageSessionsPerUser
+      averageSessionsPerUser,
     };
   }
 }

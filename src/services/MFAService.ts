@@ -1,166 +1,159 @@
-import { v4 as uuidv4 } from 'uuid';
-import { MFAConfig, MFASetupResponse, MFAVerifyRequest, MFAVerifyResponse } from '../types';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
+import { User } from '../types';
 
 export class MFAService {
-  private static readonly TOTP_WINDOW = 1; // Allow 1 time step tolerance
-  private static readonly BACKUP_CODE_LENGTH = 8;
-  private static readonly BACKUP_CODE_COUNT = 10;
+  private static instance: MFAService;
 
-  /**
-   * Generate a random secret for TOTP
-   */
-  static generateSecret(): string {
-    // Generate a 32-character base32 secret
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let secret = '';
-    for (let i = 0; i < 32; i++) {
-      secret += chars.charAt(Math.floor(Math.random() * chars.length));
+  static getInstance(): MFAService {
+    if (!MFAService.instance) {
+      MFAService.instance = new MFAService();
     }
-    return secret;
+    return MFAService.instance;
   }
 
-  /**
-   * Generate backup codes for MFA
-   */
-  static generateBackupCodes(): string[] {
+  // Static method for tests
+  static generateSecret(): string {
+    const secret = speakeasy.generateSecret({
+      name: 'test@example.com',
+      issuer: 'MockAuth',
+      length: 32,
+    });
+    return secret.base32;
+  }
+
+  // Static method for tests
+  static async generateQRCodeData(
+    secret: string,
+    email: string
+  ): Promise<string> {
+    const otpauthUrl = `otpauth://totp/MockAuth:${email}?secret=${secret}&issuer=MockAuth`;
+
+    try {
+      const qrCodeDataURL = await QRCode.toDataURL(otpauthUrl);
+      return qrCodeDataURL;
+    } catch (error) {
+      throw new Error(
+        `Failed to generate QR code: ${(error as Error).message}`
+      );
+    }
+  }
+
+  generateSecret(user: User): { secret: string; qrCode: string } {
+    const secret = speakeasy.generateSecret({
+      name: user.email,
+      issuer: 'MockAuth',
+      length: 32,
+    });
+
+    return {
+      secret: secret.base32,
+      qrCode: secret.otpauth_url || '',
+    };
+  }
+
+  async generateQRCode(secret: string, user: User): Promise<string> {
+    const otpauthUrl = `otpauth://totp/MockAuth:${user.email}?secret=${secret}&issuer=MockAuth`;
+
+    try {
+      const qrCodeDataURL = await QRCode.toDataURL(otpauthUrl);
+      return qrCodeDataURL;
+    } catch (error) {
+      throw new Error(
+        `Failed to generate QR code: ${(error as Error).message}`
+      );
+    }
+  }
+
+  verifyToken(secret: string, token: string): boolean {
+    return speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token,
+      window: 2, // Allow 2 time steps (60 seconds) of variance
+    });
+  }
+
+  generateBackupCodes(count: number = 10): string[] {
     const codes: string[] = [];
-    for (let i = 0; i < this.BACKUP_CODE_COUNT; i++) {
-      codes.push(this.generateBackupCode());
+    for (let i = 0; i < count; i++) {
+      codes.push(this.generateRandomCode());
     }
     return codes;
   }
 
-  /**
-   * Generate a single backup code
-   */
-  private static generateBackupCode(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let code = '';
-    for (let i = 0; i < this.BACKUP_CODE_LENGTH; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+  private generateRandomCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return code;
+    return result;
   }
 
-  /**
-   * Generate QR code data for authenticator app setup
-   */
-  static generateQRCodeData(secret: string, email: string, issuer: string = 'MockAuth'): string {
-    const encodedEmail = encodeURIComponent(email);
-    const encodedIssuer = encodeURIComponent(issuer);
-    return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${secret}&issuer=${encodedIssuer}`;
-  }
-
-  /**
-   * Setup MFA for a user
-   */
-  static setupMFA(userId: string, email: string): MFASetupResponse {
-    const secret = this.generateSecret();
-    const backupCodes = this.generateBackupCodes();
-    const qrCode = this.generateQRCodeData(secret, email);
-
-    return {
-      secret,
-      qrCode,
-      backupCodes,
-    };
-  }
-
-  /**
-   * Verify TOTP code
-   */
-  static verifyTOTP(secret: string, code: string): boolean {
-    // In a real implementation, you would use a proper TOTP library
-    // For MockAuth, we'll simulate verification with a simple check
-    // This is a mock implementation - in production, use a proper TOTP library
-    
-    const currentTime = Math.floor(Date.now() / 1000);
-    const timeStep = 30; // 30-second time steps
-    
-    // Check current time step and previous/next for tolerance
-    for (let i = -this.TOTP_WINDOW; i <= this.TOTP_WINDOW; i++) {
-      const time = currentTime + (i * timeStep);
-      const expectedCode = this.generateTOTPCode(secret, time);
-      if (expectedCode === code) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  /**
-   * Generate TOTP code for a given time (mock implementation)
-   */
-  private static generateTOTPCode(secret: string, time: number): string {
-    // This is a simplified mock implementation
-    // In production, use a proper TOTP library like 'otplib'
-    
-    const timeStep = Math.floor(time / 30);
-    const hash = this.simpleHash(secret + timeStep);
-    const code = (hash % 1000000).toString().padStart(6, '0');
-    return code;
-  }
-
-  /**
-   * Simple hash function for mock TOTP (not cryptographically secure)
-   */
-  private static simpleHash(input: string): number {
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash);
-  }
-
-  /**
-   * Verify backup code
-   */
-  static verifyBackupCode(backupCodes: string[], code: string): { valid: boolean; remainingCodes: string[] } {
+  verifyBackupCode(
+    backupCodes: string[],
+    code: string
+  ): { valid: boolean; remainingCodes: string[] } {
     const index = backupCodes.indexOf(code);
-    if (index === -1) {
-      return { valid: false, remainingCodes: backupCodes };
+    if (index !== -1) {
+      // Remove used backup code
+      backupCodes.splice(index, 1);
+      return { valid: true, remainingCodes: [...backupCodes] };
     }
-
-    // Remove used backup code
-    const remainingCodes = backupCodes.filter((_, i) => i !== index);
-    return { valid: true, remainingCodes };
+    return { valid: false, remainingCodes: [...backupCodes] };
   }
 
-  /**
-   * Create MFA configuration
-   */
-  static createMFAConfig(secret: string, backupCodes: string[]): MFAConfig {
-    return {
-      enabled: true,
-      secret,
-      backupCodes,
-      createdAt: new Date(),
-    };
+  // Static methods for AuthService compatibility
+  static setupMFA(user: User): {
+    secret: string;
+    qrCode: string;
+    backupCodes: string[];
+  } {
+    const instance = MFAService.getInstance();
+    const secret = instance.generateSecret(user);
+    const backupCodes = instance.generateBackupCodes();
+    return { ...secret, backupCodes };
   }
 
-  /**
-   * Disable MFA for a user
-   */
-  static disableMFA(): MFAConfig {
-    return {
-      enabled: false,
-    };
+  static createMFAConfig(user: User): {
+    secret: string;
+    qrCode: string;
+    backupCodes: string[];
+  } {
+    return MFAService.setupMFA(user);
   }
 
-  /**
-   * Check if MFA is enabled for a user
-   */
-  static isMFAEnabled(mfaConfig?: MFAConfig): boolean {
-    return mfaConfig?.enabled === true;
+  static verifyTOTP(secret: string, token: string): boolean {
+    return MFAService.getInstance().verifyToken(secret, token);
   }
 
-  /**
-   * Get remaining backup codes count
-   */
-  static getRemainingBackupCodes(mfaConfig?: MFAConfig): number {
-    return mfaConfig?.backupCodes?.length || 0;
+  static verifyBackupCode(
+    backupCodes: string[],
+    code: string
+  ): { valid: boolean; remainingCodes: string[] } {
+    return MFAService.getInstance().verifyBackupCode(backupCodes, code);
   }
+
+  static disableMFA(user: User): any {
+    // Implementation for disabling MFA
+    console.log(`MFA disabled for user: ${user.email}`);
+    return undefined;
+  }
+
+  static isMFAEnabled(user: User): boolean {
+    return user.mfa?.enabled || false;
+  }
+
+  static getRemainingBackupCodes(user: User): number {
+    return user.mfa?.backupCodes?.length || 0;
+  }
+
+  static generateBackupCodes(): string[] {
+    return MFAService.getInstance().generateBackupCodes();
+  }
+}
+
+export function createMFAService(): MFAService {
+  return MFAService.getInstance();
 }

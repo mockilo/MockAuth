@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MockAuth Advanced Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-white text-2xl font-bold">
+                            <i class="fas fa-rocket mr-2"></i>
+                            MockAuth Advanced Dashboard
+                        </h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-white text-sm">Advanced Commands</span>
+                    <div class="w-3 h-3 bg-green-400 rounded-full pulse-animation"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Welcome Section -->
+        <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-cogs text-blue-600 mr-2"></i>
+                    Advanced Command Center
+                </h2>
+                <p class="text-gray-600">Manage your MockAuth instance with powerful advanced tools</p>
+            </div>
+        </div>
+
+        <!-- Advanced Commands Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Deploy Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openDeployModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-blue-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Deploy to Cloud</dt>
+                                <dd class="text-lg font-medium text-gray-900">AWS, GCP, Azure, Docker</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-rocket mr-1"></i>
+                            Deploy your MockAuth instance to production
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitor Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openMonitorModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line text-3xl text-green-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Real-time Monitoring</dt>
+                                <dd class="text-lg font-medium text-gray-900">Performance & Health</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-heartbeat mr-1"></i>
+                            Monitor server performance and health
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openBackupModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-database text-3xl text-purple-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Backup Data</dt>
+                                <dd class="text-lg font-medium text-gray-900">Configuration & Database</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-shield-alt mr-1"></i>
+                            Create secure backups of your data
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restore Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openRestoreModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-undo text-3xl text-orange-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Restore Data</dt>
+                                <dd class="text-lg font-medium text-gray-900">From Backup</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-history mr-1"></i>
+                            Restore from previous backups
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validate Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openValidateModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-3xl text-green-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Validate Config</dt>
+                                <dd class="text-lg font-medium text-gray-900">Configuration Check</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-search mr-1"></i>
+                            Validate your configuration
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benchmark Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openBenchmarkModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-tachometer-alt text-3xl text-red-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Performance Benchmark</dt>
+                                <dd class="text-lg font-medium text-gray-900">Speed & Performance</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-stopwatch mr-1"></i>
+                            Test your server performance
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Docs Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openDocsModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-book text-3xl text-indigo-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Generate Docs</dt>
+                                <dd class="text-lg font-medium text-gray-900">API Documentation</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-file-alt mr-1"></i>
+                            Generate API documentation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plugin Command -->
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover cursor-pointer" onclick="openPluginModal()">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-puzzle-piece text-3xl text-pink-600"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Plugin Management</dt>
+                                <dd class="text-lg font-medium text-gray-900">Install & Manage</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-plug mr-1"></i>
+                            Manage plugins and extensions
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Status Section -->
+        <div class="mt-8 bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    System Status
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                            <span class="text-green-800 font-medium">All Systems Operational</span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-server text-blue-600 mr-2"></i>
+                            <span class="text-blue-800 font-medium">Server Running</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-purple-600 mr-2"></i>
+                            <span class="text-purple-800 font-medium">Security Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deploy Modal -->
+    <div id="deployModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-cloud-upload-alt text-blue-600 mr-2"></i>
+                        Deploy to Cloud
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="aws">☁️ AWS (Amazon Web Services)</option>
+                                <option value="gcp">🌐 Google Cloud Platform</option>
+                                <option value="azure">🔵 Microsoft Azure</option>
+                                <option value="docker">🐳 Docker</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Environment</label>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="development">🛠️ Development</option>
+                                <option value="staging">🧪 Staging</option>
+                                <option value="production">🚀 Production</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('deployModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeDeploy()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                        <i class="fas fa-rocket mr-1"></i>
+                        Deploy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monitor Modal -->
+    <div id="monitorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                        Real-time Monitoring
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dashboard Port</label>
+                            <input type="number" value="3003" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="3003">
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-heartbeat text-green-600 mr-2"></i>
+                                <span class="text-green-800 font-medium">Monitoring Features</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-green-700">
+                                <li>• Real-time metrics and performance data</li>
+                                <li>• Server health monitoring</li>
+                                <li>• Request/response tracking</li>
+                                <li>• Interactive charts and graphs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('monitorModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeMonitor()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700">
+                        <i class="fas fa-play mr-1"></i>
+                        Start Monitoring
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div id="backupModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-database text-purple-600 mr-2"></i>
+                        Create Backup
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Output Directory</label>
+                            <input type="text" value="./backups" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="./backups">
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt text-purple-600 mr-2"></i>
+                                <span class="text-purple-800 font-medium">Backup Includes</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-purple-700">
+                                <li>• Configuration files</li>
+                                <li>• Database data</li>
+                                <li>• Mock data</li>
+                                <li>• User sessions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('backupModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeBackup()" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700">
+                        <i class="fas fa-download mr-1"></i>
+                        Create Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Modal -->
+    <div id="restoreModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-undo text-orange-600 mr-2"></i>
+                        Restore from Backup
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Backup</label>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="backup-2024-01-15T10-30-00-000Z">backup-2024-01-15T10-30-00-000Z</option>
+                                <option value="backup-2024-01-14T15-45-00-000Z">backup-2024-01-14T15-45-00-000Z</option>
+                                <option value="backup-2024-01-13T09-20-00-000Z">backup-2024-01-13T09-20-00-000Z</option>
+                            </select>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-history text-orange-600 mr-2"></i>
+                                <span class="text-orange-800 font-medium">Restore Process</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-orange-700">
+                                <li>• Configuration restored</li>
+                                <li>• Database data restored</li>
+                                <li>• Mock data restored</li>
+                                <li>• Sessions preserved</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('restoreModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeRestore()" class="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700">
+                        <i class="fas fa-upload mr-1"></i>
+                        Restore
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validate Modal -->
+    <div id="validateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                        Validate Configuration
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Config File</label>
+                            <input type="text" value="mockauth.config.js" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="mockauth.config.js">
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-search text-green-600 mr-2"></i>
+                                <span class="text-green-800 font-medium">Validation Checks</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-green-700">
+                                <li>• Configuration file syntax</li>
+                                <li>• Required fields present</li>
+                                <li>• Database connection</li>
+                                <li>• Port availability</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('validateModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeValidate()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700">
+                        <i class="fas fa-check mr-1"></i>
+                        Validate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benchmark Modal -->
+    <div id="benchmarkModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-tachometer-alt text-red-600 mr-2"></i>
+                        Performance Benchmark
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <option value="30">⚡ Quick (30 seconds)</option>
+                                <option value="120">🔄 Standard (2 minutes)</option>
+                                <option value="300">📊 Comprehensive (5 minutes)</option>
+                            </select>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-stopwatch text-red-600 mr-2"></i>
+                                <span class="text-red-800 font-medium">Benchmark Tests</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-red-700">
+                                <li>• Login performance</li>
+                                <li>• Request/response times</li>
+                                <li>• Throughput testing</li>
+                                <li>• Memory usage</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('benchmarkModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeBenchmark()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">
+                        <i class="fas fa-play mr-1"></i>
+                        Start Benchmark
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docs Modal -->
+    <div id="docsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-book text-indigo-600 mr-2"></i>
+                        Generate Documentation
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Output Directory</label>
+                            <input type="text" value="./docs" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="./docs">
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="openBrowser" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="openBrowser" class="ml-2 block text-sm text-gray-900">
+                                Open documentation in browser
+                            </label>
+                        </div>
+                        <div class="bg-indigo-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-alt text-indigo-600 mr-2"></i>
+                                <span class="text-indigo-800 font-medium">Documentation Includes</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-indigo-700">
+                                <li>• API reference</li>
+                                <li>• Endpoint documentation</li>
+                                <li>• Examples and guides</li>
+                                <li>• Authentication flows</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('docsModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executeDocs()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700">
+                        <i class="fas fa-file-alt mr-1"></i>
+                        Generate Docs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plugin Modal -->
+    <div id="pluginModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <i class="fas fa-puzzle-piece text-pink-600 mr-2"></i>
+                        Plugin Management
+                    </h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                            <select class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                <option value="install">📦 Install Plugin</option>
+                                <option value="remove">🗑️ Remove Plugin</option>
+                                <option value="list">📋 List Plugins</option>
+                                <option value="update">🔄 Update Plugins</option>
+                            </select>
+                        </div>
+                        <div class="bg-pink-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="fas fa-plug text-pink-600 mr-2"></i>
+                                <span class="text-pink-800 font-medium">Available Plugins</span>
+                            </div>
+                            <ul class="mt-2 text-sm text-pink-700">
+                                <li>• oauth-provider</li>
+                                <li>• rate-limiter</li>
+                                <li>• audit-logger</li>
+                                <li>• webhook-manager</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                    <button onclick="closeModal('pluginModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="executePlugin()" class="px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-transparent rounded-md hover:bg-pink-700">
+                        <i class="fas fa-cog mr-1"></i>
+                        Execute
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functions
+        function openDeployModal() {
+            document.getElementById('deployModal').classList.remove('hidden');
+        }
+
+        function openMonitorModal() {
+            document.getElementById('monitorModal').classList.remove('hidden');
+        }
+
+        function openBackupModal() {
+            document.getElementById('backupModal').classList.remove('hidden');
+        }
+
+        function openRestoreModal() {
+            document.getElementById('restoreModal').classList.remove('hidden');
+        }
+
+        function openValidateModal() {
+            document.getElementById('validateModal').classList.remove('hidden');
+        }
+
+        function openBenchmarkModal() {
+            document.getElementById('benchmarkModal').classList.remove('hidden');
+        }
+
+        function openDocsModal() {
+            document.getElementById('docsModal').classList.remove('hidden');
+        }
+
+        function openPluginModal() {
+            document.getElementById('pluginModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Execute functions
+        function executeDeploy() {
+            const platform = document.querySelector('#deployModal select').value;
+            const environment = document.querySelectorAll('#deployModal select')[1].value;
+            
+            showNotification(`Deploying to ${platform} (${environment})...`, 'info');
+            closeModal('deployModal');
+            
+            // Simulate deployment
+            setTimeout(() => {
+                showNotification(`Successfully deployed to ${platform}!`, 'success');
+            }, 2000);
+        }
+
+        function executeMonitor() {
+            const port = document.querySelector('#monitorModal input').value;
+            
+            showNotification(`Starting monitoring dashboard on port ${port}...`, 'info');
+            closeModal('monitorModal');
+            
+            // Simulate monitoring start
+            setTimeout(() => {
+                showNotification(`Monitoring dashboard running on http://localhost:${port}`, 'success');
+            }, 1000);
+        }
+
+        function executeBackup() {
+            const outputDir = document.querySelector('#backupModal input').value;
+            
+            showNotification(`Creating backup in ${outputDir}...`, 'info');
+            closeModal('backupModal');
+            
+            // Simulate backup
+            setTimeout(() => {
+                showNotification('Backup created successfully!', 'success');
+            }, 2000);
+        }
+
+        function executeRestore() {
+            const backup = document.querySelector('#restoreModal select').value;
+            
+            showNotification(`Restoring from ${backup}...`, 'info');
+            closeModal('restoreModal');
+            
+            // Simulate restore
+            setTimeout(() => {
+                showNotification('Restore completed successfully!', 'success');
+            }, 2000);
+        }
+
+        function executeValidate() {
+            const configFile = document.querySelector('#validateModal input').value;
+            
+            showNotification(`Validating ${configFile}...`, 'info');
+            closeModal('validateModal');
+            
+            // Simulate validation
+            setTimeout(() => {
+                showNotification('Configuration is valid!', 'success');
+            }, 1500);
+        }
+
+        function executeBenchmark() {
+            const duration = document.querySelector('#benchmarkModal select').value;
+            
+            showNotification(`Running ${duration}-second benchmark...`, 'info');
+            closeModal('benchmarkModal');
+            
+            // Simulate benchmark
+            setTimeout(() => {
+                showNotification('Benchmark completed! Check results.', 'success');
+            }, 3000);
+        }
+
+        function executeDocs() {
+            const outputDir = document.querySelector('#docsModal input').value;
+            const openBrowser = document.querySelector('#docsModal input[type="checkbox"]').checked;
+            
+            showNotification(`Generating documentation in ${outputDir}...`, 'info');
+            closeModal('docsModal');
+            
+            // Simulate docs generation
+            setTimeout(() => {
+                showNotification('Documentation generated successfully!', 'success');
+                if (openBrowser) {
+                    setTimeout(() => {
+                        showNotification('Opening documentation in browser...', 'info');
+                    }, 500);
+                }
+            }, 2000);
+        }
+
+        function executePlugin() {
+            const action = document.querySelector('#pluginModal select').value;
+            
+            showNotification(`Executing plugin ${action}...`, 'info');
+            closeModal('pluginModal');
+            
+            // Simulate plugin action
+            setTimeout(() => {
+                showNotification(`Plugin ${action} completed!`, 'success');
+            }, 1500);
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('fixed')) {
+                event.target.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

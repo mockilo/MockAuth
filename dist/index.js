@@ -10,6 +10,18 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
@@ -33,25 +45,57 @@ const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const morgan_1 = __importDefault(require("morgan"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const path = __importStar(require("path"));
 const UserService_1 = require("./services/UserService");
 const AuthService_1 = require("./services/AuthService");
 const auth_1 = require("./routes/auth");
 const users_1 = require("./routes/users");
 const roles_1 = require("./routes/roles");
 const health_1 = require("./routes/health");
+const debug_1 = require("./routes/debug");
+const sso_1 = require("./routes/sso");
+const rbac_1 = require("./routes/rbac");
+const compliance_1 = require("./routes/compliance");
+const builder_1 = require("./routes/builder");
 const WebhookService_1 = require("./services/WebhookService");
 const AuditService_1 = require("./services/AuditService");
+const EcosystemService_1 = require("./services/EcosystemService");
+const DatabaseService_1 = require("./services/DatabaseService");
+const SSOService_1 = require("./services/SSOService");
+const AdvancedRBACService_1 = require("./services/AdvancedRBACService");
+const ComplianceService_1 = require("./services/ComplianceService");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestLogger_1 = require("./middleware/requestLogger");
+const performance_1 = require("./middleware/performance");
 // TypeScript service refresh comment
 class MockAuth {
     constructor(config) {
+        var _a, _b;
+        this.ssoService = null;
+        this.rbacService = null;
+        this.complianceService = null;
+        this.cleanupInterval = null;
         this.config = this.validateConfig(config);
         this.app = (0, express_1.default)();
         this.userService = new UserService_1.UserService(config.users || []);
         this.authService = new AuthService_1.AuthService(this.userService, config.jwtSecret, config.tokenExpiry, config.refreshTokenExpiry);
         this.webhookService = (0, WebhookService_1.createWebhookService)(config.webhooks);
         this.auditService = (0, AuditService_1.createAuditService)(config.enableAuditLog);
+        this.ecosystemService = (0, EcosystemService_1.createEcosystemService)({
+            mocktail: ((_a = config.ecosystem) === null || _a === void 0 ? void 0 : _a.mocktail) || { enabled: false },
+            schemaghost: ((_b = config.ecosystem) === null || _b === void 0 ? void 0 : _b.schemaghost) || { enabled: false },
+        });
+        this.databaseService = (0, DatabaseService_1.createDatabaseService)(config.database || { type: 'memory' });
+        // Initialize enterprise services
+        if (this.config.sso) {
+            this.ssoService = (0, SSOService_1.createSSOService)(this.config.sso);
+        }
+        if (this.config.rbac) {
+            this.rbacService = (0, AdvancedRBACService_1.createAdvancedRBACService)(this.config.rbac);
+        }
+        if (this.config.compliance) {
+            this.complianceService = (0, ComplianceService_1.createComplianceService)(this.config.compliance);
+        }
         this.setupMiddleware();
         this.setupRoutes();
         this.setupErrorHandling();
@@ -61,6 +105,11 @@ class MockAuth {
     validateConfig(config) {
         if (!config.jwtSecret) {
             throw new Error('JWT secret is required');
+        }
+        // Validate JWT secret strength (minimum 32 characters for security)
+        if (config.jwtSecret.length < 32) {
+            throw new Error('JWT secret must be at least 32 characters long for security. Current length: ' +
+                config.jwtSecret.length);
         }
         if (!config.port) {
             throw new Error('Port is required');
@@ -99,16 +148,34 @@ class MockAuth {
         this.app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
         // Custom middleware
         this.app.use(requestLogger_1.requestLogger);
+        this.app.use(performance_1.performanceMiddleware);
+        this.app.use(performance_1.errorTrackingMiddleware);
     }
     setupRoutes() {
         // Health check
         this.app.use('/health', (0, health_1.createHealthRoutes)());
+        // Debug console routes
+        this.app.use('/debug', (0, debug_1.createDebugRoutes)());
         // Authentication routes
         this.app.use('/auth', (0, auth_1.createAuthRoutes)(this.authService, this.userService, this.webhookService, this.auditService));
         // User management routes
         this.app.use('/users', (0, users_1.createUserRoutes)(this.userService, this.authService, this.webhookService, this.auditService));
         // Role management routes
         this.app.use('/roles', (0, roles_1.createRoleRoutes)(this.userService, this.authService, this.webhookService, this.auditService));
+        // Builder API routes
+        this.app.use('/api/builder', (0, builder_1.createBuilderRoutes)(this));
+        // Enterprise routes
+        if (this.ssoService) {
+            this.app.use('/sso', (0, sso_1.createSSORoutes)(this.ssoService));
+        }
+        if (this.rbacService) {
+            this.app.use('/rbac', (0, rbac_1.createRBACRoutes)(this.rbacService));
+        }
+        if (this.complianceService) {
+            this.app.use('/compliance', (0, compliance_1.createComplianceRoutes)(this.complianceService));
+        }
+        // Web Interface Routes - Serve your existing HTML files
+        this.setupWebInterface();
         // API documentation
         this.app.get('/api', (_req, res) => {
             res.json({
@@ -120,8 +187,20 @@ class MockAuth {
                     auth: '/auth',
                     users: '/users',
                     roles: '/roles',
+                    metrics: '/metrics',
+                    dashboard: '/dashboard',
+                    login: '/login',
                 },
                 documentation: 'https://mockauth.dev/docs',
+            });
+        });
+        // Performance metrics endpoint
+        this.app.get('/metrics', (_req, res) => {
+            const { performanceMonitor } = require('./middleware/performance');
+            res.json({
+                success: true,
+                data: performanceMonitor.getMetrics(),
+                timestamp: new Date().toISOString(),
             });
         });
         // 404 handler
@@ -134,22 +213,86 @@ class MockAuth {
             });
         });
     }
+    setupWebInterface() {
+        // Serve your existing HTML files from web-builder directory
+        // The web-builder files are in the source directory, not dist
+        const webBuilderPath = path.join(__dirname, '..', 'src', 'web-builder');
+        // Serve static files (JS, CSS, images) from web-builder directory
+        this.app.use(express_1.default.static(webBuilderPath));
+        this.app.get('/', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'dashboard.html'));
+        });
+        this.app.get('/dashboard', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'dashboard.html'));
+        });
+        this.app.get('/login', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'login.html'));
+        });
+        this.app.get('/signup', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'signup.html'));
+        });
+        this.app.get('/forgot-password', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'forgot-password.html'));
+        });
+        this.app.get('/builder', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'index.html'));
+        });
+        // Serve JavaScript files explicitly
+        this.app.get('/builder.js', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'builder.js'));
+        });
+        this.app.get('/dashboard.js', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'dashboard.js'));
+        });
+        this.app.get('/login.js', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'login.js'));
+        });
+        this.app.get('/signup.js', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'signup.js'));
+        });
+        this.app.get('/forgot-password.js', (req, res) => {
+            res.sendFile(path.join(webBuilderPath, 'forgot-password.js'));
+        });
+    }
     setupErrorHandling() {
         this.app.use(errorHandler_1.errorHandler);
     }
     start() {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 try {
+                    // Initialize database first
+                    yield this.databaseService.connect();
+                    // Initialize ecosystem services (non-blocking)
+                    try {
+                        yield this.ecosystemService.initialize();
+                    }
+                    catch (error) {
+                        console.warn('⚠️ Some ecosystem services failed to start, but MockAuth will continue');
+                        console.log('💡 You can check the logs above for specific service issues');
+                    }
                     this.server = this.app.listen(this.config.port, this.config.host || 'localhost', () => {
+                        var _a, _b, _c, _d;
                         console.log(`🚀 MockAuth server running on http://${this.config.host || 'localhost'}:${this.config.port}`);
                         console.log(`📚 API Documentation: ${this.config.baseUrl}/api`);
                         console.log(`❤️  Health Check: ${this.config.baseUrl}/health`);
-                        // Start cleanup interval for expired sessions
-                        setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                            const cleaned = yield this.authService.cleanupExpiredSessions();
-                            if (cleaned > 0) {
-                                console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
+                        // Log ecosystem status
+                        if ((_b = (_a = this.config.ecosystem) === null || _a === void 0 ? void 0 : _a.mocktail) === null || _b === void 0 ? void 0 : _b.enabled) {
+                            console.log(`🎭 MockTail: Mock data generation enabled`);
+                        }
+                        if ((_d = (_c = this.config.ecosystem) === null || _c === void 0 ? void 0 : _c.schemaghost) === null || _d === void 0 ? void 0 : _d.enabled) {
+                            console.log(`👻 SchemaGhost: Mock API server enabled`);
+                        }
+                        // Start cleanup interval for expired sessions with error handling
+                        this.cleanupInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
+                            try {
+                                const cleaned = yield this.authService.cleanupExpiredSessions();
+                                if (cleaned > 0) {
+                                    console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
+                                }
+                            }
+                            catch (error) {
+                                console.error('❌ Session cleanup failed:', error);
                             }
                         }), 5 * 60 * 1000); // Every 5 minutes
                         resolve();
@@ -166,12 +309,22 @@ class MockAuth {
                 catch (error) {
                     reject(error);
                 }
-            });
+            }));
         });
     }
     stop() {
         return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                // Clear cleanup interval to prevent memory leaks
+                if (this.cleanupInterval) {
+                    clearInterval(this.cleanupInterval);
+                    this.cleanupInterval = null;
+                    console.log('🧹 Cleanup interval cleared');
+                }
+                // Stop ecosystem services first
+                yield this.ecosystemService.stop();
+                // Disconnect from database
+                yield this.databaseService.disconnect();
                 if (this.server) {
                     this.server.close(() => {
                         console.log('🛑 MockAuth server stopped');
@@ -181,7 +334,7 @@ class MockAuth {
                 else {
                     resolve();
                 }
-            });
+            }));
         });
     }
     // Public API methods
@@ -193,6 +346,12 @@ class MockAuth {
     }
     getConfig() {
         return Object.assign({}, this.config);
+    }
+    getEcosystemService() {
+        return this.ecosystemService;
+    }
+    getDatabaseService() {
+        return this.databaseService;
     }
     createUser(userData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -247,14 +406,23 @@ class MockAuth {
     }
     initializeUsersSync() {
         if (this.config.users && this.config.users.length > 0) {
+            console.log(`📝 Initializing ${this.config.users.length} user(s)...`);
+            let successCount = 0;
+            let failCount = 0;
             for (const userData of this.config.users) {
                 try {
                     // Create user directly in the user service
                     this.userService.createUserSync(userData);
+                    successCount++;
                 }
                 catch (error) {
-                    console.warn(`Failed to initialize user ${userData.email}:`, error);
+                    failCount++;
+                    console.error(`❌ Failed to initialize user ${userData.email}:`, error);
                 }
+            }
+            console.log(`✅ Successfully initialized ${successCount} user(s)`);
+            if (failCount > 0) {
+                console.warn(`⚠️  Failed to initialize ${failCount} user(s)`);
             }
         }
     }

@@ -135,7 +135,7 @@ class AuthService {
             this.sessions.delete(sessionId);
             // Remove from user sessions
             const userSessions = this.userSessions.get(session.userId) || [];
-            const updatedUserSessions = userSessions.filter(id => id !== sessionId);
+            const updatedUserSessions = userSessions.filter((id) => id !== sessionId);
             if (updatedUserSessions.length > 0) {
                 this.userSessions.set(session.userId, updatedUserSessions);
             }
@@ -200,14 +200,20 @@ class AuthService {
     }
     getCurrentUser(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.verifyToken(token);
+            const user = yield this.verifyToken(token);
+            if (!user) {
+                return null;
+            }
+            // Return user without password for security
+            const { password } = user, userWithoutPassword = __rest(user, ["password"]);
+            return userWithoutPassword;
         });
     }
     getUserSessions(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const sessionIds = this.userSessions.get(userId) || [];
             return sessionIds
-                .map(id => this.sessions.get(id))
+                .map((id) => this.sessions.get(id))
                 .filter((session) => session !== undefined);
         });
     }
@@ -267,7 +273,8 @@ class AuthService {
             permissions: user.permissions,
             sessionId,
             iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + this.parseExpiry(this.tokenExpiry) / 1000,
+            exp: Math.floor(Date.now() / 1000) +
+                this.parseExpiry(this.tokenExpiry) / 1000,
         };
         return jwt.sign(payload, this.jwtSecret);
     }
@@ -284,11 +291,16 @@ class AuthService {
         const value = parseInt(match[1]);
         const unit = match[2];
         switch (unit) {
-            case 's': return value * 1000;
-            case 'm': return value * 60 * 1000;
-            case 'h': return value * 60 * 60 * 1000;
-            case 'd': return value * 24 * 60 * 60 * 1000;
-            default: return 24 * 60 * 60 * 1000;
+            case 's':
+                return value * 1000;
+            case 'm':
+                return value * 60 * 1000;
+            case 'h':
+                return value * 60 * 60 * 1000;
+            case 'd':
+                return value * 24 * 60 * 60 * 1000;
+            default:
+                return 24 * 60 * 60 * 1000;
         }
     }
     sanitizeUser(user) {
@@ -314,8 +326,8 @@ class AuthService {
             const sessions = Array.from(this.sessions.values());
             const stats = {
                 total: sessions.length,
-                active: sessions.filter(s => s.isActive && s.expiresAt > now).length,
-                expired: sessions.filter(s => s.expiresAt <= now).length,
+                active: sessions.filter((s) => s.isActive && s.expiresAt > now).length,
+                expired: sessions.filter((s) => s.expiresAt <= now).length,
                 byUser: {},
             };
             // Count sessions by user
@@ -339,11 +351,16 @@ class AuthService {
             if ((_a = user.mfa) === null || _a === void 0 ? void 0 : _a.enabled) {
                 throw new Error('MFA is already enabled for this user');
             }
-            const mfaSetup = MFAService_1.MFAService.setupMFA(userId, user.email);
-            const mfaConfig = MFAService_1.MFAService.createMFAConfig(mfaSetup.secret, mfaSetup.backupCodes);
+            const mfaSetup = MFAService_1.MFAService.setupMFA(user);
+            const mfaConfig = {
+                enabled: false,
+                secret: mfaSetup.secret,
+                backupCodes: mfaSetup.backupCodes,
+                createdAt: new Date(),
+            };
             // Update user with MFA config (but don't enable yet)
             yield this.userService.updateUser(userId, {
-                mfa: mfaConfig
+                mfa: mfaConfig,
             });
             return mfaSetup;
         });
@@ -364,9 +381,10 @@ class AuthService {
             let isValid = false;
             let remainingBackupCodes = user.mfa.backupCodes || [];
             if (request.backupCode) {
-                const result = MFAService_1.MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
-                isValid = result.valid;
-                remainingBackupCodes = result.remainingCodes;
+                const backupResult = MFAService_1.MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
+                isValid = backupResult.valid;
+                // Update remaining codes after verification
+                remainingBackupCodes = user.mfa.backupCodes || [];
             }
             else {
                 isValid = MFAService_1.MFAService.verifyTOTP(user.mfa.secret, request.code);
@@ -377,11 +395,11 @@ class AuthService {
             // Enable MFA
             const updatedMfaConfig = Object.assign(Object.assign({}, user.mfa), { enabled: true, lastUsed: new Date() });
             yield this.userService.updateUser(userId, {
-                mfa: updatedMfaConfig
+                mfa: updatedMfaConfig,
             });
             return {
                 success: true,
-                backupCodes: remainingBackupCodes
+                backupCodes: remainingBackupCodes,
             };
         });
     }
@@ -398,9 +416,10 @@ class AuthService {
             let isValid = false;
             let remainingBackupCodes = user.mfa.backupCodes || [];
             if (request.backupCode) {
-                const result = MFAService_1.MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
-                isValid = result.valid;
-                remainingBackupCodes = result.remainingCodes;
+                const backupResult = MFAService_1.MFAService.verifyBackupCode(user.mfa.backupCodes || [], request.backupCode);
+                isValid = backupResult.valid;
+                // Update remaining codes after verification
+                remainingBackupCodes = user.mfa.backupCodes || [];
             }
             else {
                 isValid = MFAService_1.MFAService.verifyTOTP(user.mfa.secret, request.code);
@@ -409,15 +428,16 @@ class AuthService {
                 return { success: false };
             }
             // Update MFA config with new backup codes if used
-            if (request.backupCode && remainingBackupCodes.length !== ((_b = user.mfa.backupCodes) === null || _b === void 0 ? void 0 : _b.length)) {
+            if (request.backupCode &&
+                remainingBackupCodes.length !== ((_b = user.mfa.backupCodes) === null || _b === void 0 ? void 0 : _b.length)) {
                 const updatedMfaConfig = Object.assign(Object.assign({}, user.mfa), { backupCodes: remainingBackupCodes, lastUsed: new Date() });
                 yield this.userService.updateUser(userId, {
-                    mfa: updatedMfaConfig
+                    mfa: updatedMfaConfig,
                 });
             }
             return {
                 success: true,
-                backupCodes: remainingBackupCodes
+                backupCodes: remainingBackupCodes,
             };
         });
     }
@@ -434,9 +454,9 @@ class AuthService {
             if (!((_a = user.mfa) === null || _a === void 0 ? void 0 : _a.enabled)) {
                 throw new Error('MFA is not enabled for this user');
             }
-            const disabledMfaConfig = MFAService_1.MFAService.disableMFA();
+            const disabledMfaConfig = MFAService_1.MFAService.disableMFA(user);
             yield this.userService.updateUser(userId, {
-                mfa: disabledMfaConfig
+                mfa: disabledMfaConfig,
             });
             return true;
         });
@@ -452,9 +472,9 @@ class AuthService {
                 throw new Error('User not found');
             }
             return {
-                enabled: MFAService_1.MFAService.isMFAEnabled(user.mfa),
-                backupCodesCount: MFAService_1.MFAService.getRemainingBackupCodes(user.mfa),
-                lastUsed: (_a = user.mfa) === null || _a === void 0 ? void 0 : _a.lastUsed
+                enabled: MFAService_1.MFAService.isMFAEnabled(user),
+                backupCodesCount: MFAService_1.MFAService.getRemainingBackupCodes(user),
+                lastUsed: (_a = user.mfa) === null || _a === void 0 ? void 0 : _a.lastUsed,
             };
         });
     }
@@ -471,7 +491,7 @@ class AuthService {
             const newBackupCodes = MFAService_1.MFAService.generateBackupCodes();
             const updatedMfaConfig = Object.assign(Object.assign({}, user.mfa), { backupCodes: newBackupCodes });
             yield this.userService.updateUser(userId, {
-                mfa: updatedMfaConfig
+                mfa: updatedMfaConfig,
             });
             return newBackupCodes;
         });
@@ -579,7 +599,7 @@ class AuthService {
             if (!deviceType) {
                 return sessions;
             }
-            return sessions.filter(session => { var _a; return (_a = session.device) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(deviceType.toLowerCase()); });
+            return sessions.filter((session) => { var _a; return (_a = session.device) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(deviceType.toLowerCase()); });
         });
     }
     /**
@@ -589,21 +609,21 @@ class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const sessions = yield this.getUserSessions(userId);
             const now = new Date();
-            const activeSessions = sessions.filter(s => s.isActive && s.expiresAt > now);
+            const activeSessions = sessions.filter((s) => s.isActive && s.expiresAt > now);
             const byDevice = {};
             const byLocation = {};
-            sessions.forEach(session => {
+            sessions.forEach((session) => {
                 const device = session.device || 'Unknown';
                 const location = session.ipAddress || 'Unknown';
                 byDevice[device] = (byDevice[device] || 0) + 1;
                 byLocation[location] = (byLocation[location] || 0) + 1;
             });
             const totalDuration = sessions.reduce((sum, session) => {
-                return sum + (session.lastActivityAt.getTime() - session.createdAt.getTime());
+                return (sum + (session.lastActivityAt.getTime() - session.createdAt.getTime()));
             }, 0);
             const averageSessionDuration = sessions.length > 0 ? totalDuration / sessions.length : 0;
             const lastActivity = sessions.length > 0
-                ? new Date(Math.max(...sessions.map(s => s.lastActivityAt.getTime())))
+                ? new Date(Math.max(...sessions.map((s) => s.lastActivityAt.getTime())))
                 : null;
             return {
                 totalSessions: sessions.length,
@@ -611,7 +631,7 @@ class AuthService {
                 byDevice,
                 byLocation,
                 averageSessionDuration,
-                lastActivity
+                lastActivity,
             };
         });
     }
@@ -654,11 +674,11 @@ class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             const now = new Date();
             const allSessions = Array.from(this.sessions.values());
-            const activeSessions = allSessions.filter(s => s.isActive && s.expiresAt > now);
-            const expiredSessions = allSessions.filter(s => s.expiresAt <= now);
+            const activeSessions = allSessions.filter((s) => s.isActive && s.expiresAt > now);
+            const expiredSessions = allSessions.filter((s) => s.expiresAt <= now);
             const byDevice = {};
             const byUser = {};
-            allSessions.forEach(session => {
+            allSessions.forEach((session) => {
                 const device = session.device || 'Unknown';
                 byDevice[device] = (byDevice[device] || 0) + 1;
                 byUser[session.userId] = (byUser[session.userId] || 0) + 1;
@@ -671,7 +691,7 @@ class AuthService {
                 expiredSessions: expiredSessions.length,
                 byDevice,
                 byUser,
-                averageSessionsPerUser
+                averageSessionsPerUser,
             };
         });
     }

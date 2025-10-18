@@ -1,4 +1,8 @@
-import { AccountLockoutConfig, UnlockAccountRequest, UnlockAccountResponse } from '../types';
+import {
+  AccountLockoutConfig,
+  UnlockAccountRequest,
+  UnlockAccountResponse,
+} from '../types';
 
 export interface LockoutRecord {
   userId: string;
@@ -14,11 +18,13 @@ export class AccountLockoutService {
   private lockoutRecords: Map<string, LockoutRecord> = new Map();
   private config: AccountLockoutConfig;
 
-  constructor(config: AccountLockoutConfig = {
-    maxAttempts: 5,
-    lockoutDuration: 15 * 60 * 1000, // 15 minutes
-    enableLockout: true
-  }) {
+  constructor(
+    config: AccountLockoutConfig = {
+      maxAttempts: 5,
+      lockoutDuration: 15 * 60 * 1000, // 15 minutes
+      enableLockout: true,
+    }
+  ) {
     this.config = config;
   }
 
@@ -50,20 +56,22 @@ export class AccountLockoutService {
         return {
           isLocked: true,
           attemptsRemaining: 0,
-          lockedUntil: existingRecord.lockedUntil
+          lockedUntil: existingRecord.lockedUntil,
         };
       }
 
       // Increment attempts
       const newAttempts = existingRecord.attempts + 1;
       const isLocked = newAttempts >= this.config.maxAttempts;
-      const lockedUntil = isLocked ? new Date(now.getTime() + this.config.lockoutDuration) : undefined;
+      const lockedUntil = isLocked
+        ? new Date(now.getTime() + this.config.lockoutDuration)
+        : undefined;
 
       const updatedRecord: LockoutRecord = {
         ...existingRecord,
         attempts: newAttempts,
         lockedAt: isLocked ? now : existingRecord.lockedAt,
-        lockedUntil: lockedUntil || existingRecord.lockedUntil
+        lockedUntil: lockedUntil || existingRecord.lockedUntil,
       };
 
       this.lockoutRecords.set(userId, updatedRecord);
@@ -71,19 +79,22 @@ export class AccountLockoutService {
       return {
         isLocked,
         attemptsRemaining: Math.max(0, this.config.maxAttempts - newAttempts),
-        lockedUntil
+        lockedUntil,
       };
     } else {
       // First failed attempt
       const newAttempts = 1;
       const isLocked = newAttempts >= this.config.maxAttempts;
-      const lockedUntil = isLocked ? new Date(now.getTime() + this.config.lockoutDuration) : undefined;
+      const lockedUntil = isLocked
+        ? new Date(now.getTime() + this.config.lockoutDuration)
+        : undefined;
 
       const newRecord: LockoutRecord = {
         userId,
         attempts: newAttempts,
         lockedAt: isLocked ? now : now,
-        lockedUntil: lockedUntil || new Date(now.getTime() + this.config.lockoutDuration)
+        lockedUntil:
+          lockedUntil || new Date(now.getTime() + this.config.lockoutDuration),
       };
 
       this.lockoutRecords.set(userId, newRecord);
@@ -91,7 +102,7 @@ export class AccountLockoutService {
       return {
         isLocked,
         attemptsRemaining: this.config.maxAttempts - newAttempts,
-        lockedUntil
+        lockedUntil,
       };
     }
   }
@@ -112,13 +123,13 @@ export class AccountLockoutService {
     attempts?: number;
   }> {
     const record = this.lockoutRecords.get(userId);
-    
+
     if (!record) {
       return { isLocked: false };
     }
 
     const now = new Date();
-    
+
     if (record.lockedUntil < now) {
       // Lockout has expired, clean up
       this.lockoutRecords.delete(userId);
@@ -128,21 +139,24 @@ export class AccountLockoutService {
     return {
       isLocked: true,
       lockedUntil: record.lockedUntil,
-      attempts: record.attempts
+      attempts: record.attempts,
     };
   }
 
   /**
    * Unlock an account (admin function)
    */
-  async unlockAccount(request: UnlockAccountRequest, unlockedBy: string): Promise<UnlockAccountResponse> {
+  async unlockAccount(
+    request: UnlockAccountRequest,
+    unlockedBy: string
+  ): Promise<UnlockAccountResponse> {
     const { userId, reason } = request;
     const record = this.lockoutRecords.get(userId);
 
     if (!record) {
       return {
         success: false,
-        message: 'Account is not locked'
+        message: 'Account is not locked',
       };
     }
 
@@ -151,14 +165,14 @@ export class AccountLockoutService {
       ...record,
       unlockedBy,
       unlockedAt: now,
-      reason: reason || record.reason
+      reason: reason || record.reason,
     };
 
     this.lockoutRecords.set(userId, updatedRecord);
 
     return {
       success: true,
-      message: 'Account unlocked successfully'
+      message: 'Account unlocked successfully',
     };
   }
 
@@ -173,12 +187,12 @@ export class AccountLockoutService {
   } {
     const records = Array.from(this.lockoutRecords.values());
     const now = new Date();
-    const activeRecords = records.filter(r => r.lockedUntil > now);
+    const activeRecords = records.filter((r) => r.lockedUntil > now);
 
     const totalAttempts = activeRecords.reduce((sum, r) => sum + r.attempts, 0);
     const byReason: Record<string, number> = {};
 
-    activeRecords.forEach(record => {
+    activeRecords.forEach((record) => {
       const reason = record.reason || 'unknown';
       byReason[reason] = (byReason[reason] || 0) + 1;
     });
@@ -186,8 +200,9 @@ export class AccountLockoutService {
     return {
       totalLocked: activeRecords.length,
       totalAttempts,
-      averageAttempts: activeRecords.length > 0 ? totalAttempts / activeRecords.length : 0,
-      byReason
+      averageAttempts:
+        activeRecords.length > 0 ? totalAttempts / activeRecords.length : 0,
+      byReason,
     };
   }
 
@@ -196,13 +211,13 @@ export class AccountLockoutService {
    */
   getLockoutRecord(userId: string): LockoutRecord | null {
     const record = this.lockoutRecords.get(userId);
-    
+
     if (!record) {
       return null;
     }
 
     const now = new Date();
-    
+
     if (record.lockedUntil < now) {
       // Lockout has expired, clean up
       this.lockoutRecords.delete(userId);

@@ -4,17 +4,39 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import { MockAuthConfig, User } from './types';
+import * as path from 'path';
+import {
+  MockAuthConfig,
+  User,
+  WebhookService,
+  AuditService,
+  EcosystemService,
+  DatabaseService,
+} from './types';
 import { UserService } from './services/UserService';
 import { AuthService } from './services/AuthService';
 import { createAuthRoutes } from './routes/auth';
 import { createUserRoutes } from './routes/users';
 import { createRoleRoutes } from './routes/roles';
 import { createHealthRoutes } from './routes/health';
+import { createDebugRoutes } from './routes/debug';
+import { createSSORoutes } from './routes/sso';
+import { createRBACRoutes } from './routes/rbac';
+import { createComplianceRoutes } from './routes/compliance';
+import { createBuilderRoutes } from './routes/builder';
 import { createWebhookService } from './services/WebhookService';
 import { createAuditService } from './services/AuditService';
+import { createEcosystemService } from './services/EcosystemService';
+import { createDatabaseService } from './services/DatabaseService';
+import { createSSOService } from './services/SSOService';
+import { createAdvancedRBACService } from './services/AdvancedRBACService';
+import { createComplianceService } from './services/ComplianceService';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
+import {
+  performanceMiddleware,
+  errorTrackingMiddleware,
+} from './middleware/performance';
 
 // TypeScript service refresh comment
 
@@ -23,9 +45,15 @@ export class MockAuth {
   private server: any;
   private userService: UserService;
   private authService: AuthService;
-  private webhookService: any;
-  private auditService: any;
+  private webhookService: WebhookService | null;
+  private auditService: AuditService | null;
+  private ecosystemService: EcosystemService;
+  private databaseService: DatabaseService;
+  private ssoService: any = null;
+  private rbacService: any = null;
+  private complianceService: any = null;
   private config: MockAuthConfig;
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor(config: MockAuthConfig) {
     this.config = this.validateConfig(config);
@@ -39,11 +67,29 @@ export class MockAuth {
     );
     this.webhookService = createWebhookService(config.webhooks);
     this.auditService = createAuditService(config.enableAuditLog);
+    this.ecosystemService = createEcosystemService({
+      mocktail: config.ecosystem?.mocktail || { enabled: false },
+      schemaghost: config.ecosystem?.schemaghost || { enabled: false },
+    });
+    this.databaseService = createDatabaseService(
+      config.database || { type: 'memory' }
+    );
+
+    // Initialize enterprise services
+    if (this.config.sso) {
+      this.ssoService = createSSOService(this.config.sso);
+    }
+    if (this.config.rbac) {
+      this.rbacService = createAdvancedRBACService(this.config.rbac);
+    }
+    if (this.config.compliance) {
+      this.complianceService = createComplianceService(this.config.compliance);
+    }
 
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
-    
+
     // Initialize users synchronously
     this.initializeUsersSync();
   }
@@ -51,6 +97,14 @@ export class MockAuth {
   private validateConfig(config: MockAuthConfig): MockAuthConfig {
     if (!config.jwtSecret) {
       throw new Error('JWT secret is required');
+    }
+
+    // Validate JWT secret strength (minimum 32 characters for security)
+    if (config.jwtSecret.length < 32) {
+      throw new Error(
+        'JWT secret must be at least 32 characters long for security. Current length: ' +
+          config.jwtSecret.length
+      );
     }
 
     if (!config.port) {
@@ -93,7 +147,7 @@ export class MockAuth {
   private setupMiddleware(): void {
     // Security middleware
     this.app.use(helmet());
-    
+
     // CORS
     this.app.use(cors(this.config.cors));
 
@@ -112,20 +166,69 @@ export class MockAuth {
 
     // Custom middleware
     this.app.use(requestLogger);
+    this.app.use(performanceMiddleware);
+    this.app.use(errorTrackingMiddleware);
   }
 
   private setupRoutes(): void {
     // Health check
     this.app.use('/health', createHealthRoutes());
 
+    // Debug console routes
+    this.app.use('/debug', createDebugRoutes());
+
     // Authentication routes
-    this.app.use('/auth', createAuthRoutes(this.authService, this.userService, this.webhookService, this.auditService));
+    this.app.use(
+      '/auth',
+      createAuthRoutes(
+        this.authService,
+        this.userService,
+        this.webhookService,
+        this.auditService
+      )
+    );
 
     // User management routes
-    this.app.use('/users', createUserRoutes(this.userService, this.authService, this.webhookService, this.auditService));
+    this.app.use(
+      '/users',
+      createUserRoutes(
+        this.userService,
+        this.authService,
+        this.webhookService,
+        this.auditService
+      )
+    );
 
     // Role management routes
-    this.app.use('/roles', createRoleRoutes(this.userService, this.authService, this.webhookService, this.auditService));
+    this.app.use(
+      '/roles',
+      createRoleRoutes(
+        this.userService,
+        this.authService,
+        this.webhookService,
+        this.auditService
+      )
+    );
+
+    // Builder API routes
+    this.app.use('/api/builder', createBuilderRoutes(this));
+
+    // Enterprise routes
+    if (this.ssoService) {
+      this.app.use('/sso', createSSORoutes(this.ssoService));
+    }
+    if (this.rbacService) {
+      this.app.use('/rbac', createRBACRoutes(this.rbacService));
+    }
+    if (this.complianceService) {
+      this.app.use(
+        '/compliance',
+        createComplianceRoutes(this.complianceService)
+      );
+    }
+
+    // Web Interface Routes - Serve your existing HTML files
+    this.setupWebInterface();
 
     // API documentation
     this.app.get('/api', (_req, res) => {
@@ -138,8 +241,21 @@ export class MockAuth {
           auth: '/auth',
           users: '/users',
           roles: '/roles',
+          metrics: '/metrics',
+          dashboard: '/dashboard',
+          login: '/login',
         },
         documentation: 'https://mockauth.dev/docs',
+      });
+    });
+
+    // Performance metrics endpoint
+    this.app.get('/metrics', (_req, res) => {
+      const { performanceMonitor } = require('./middleware/performance');
+      res.json({
+        success: true,
+        data: performanceMonitor.getMetrics(),
+        timestamp: new Date().toISOString(),
       });
     });
 
@@ -154,28 +270,114 @@ export class MockAuth {
     });
   }
 
+  private setupWebInterface(): void {
+    // Serve your existing HTML files from web-builder directory
+    // The web-builder files are in the source directory, not dist
+    const webBuilderPath = path.join(__dirname, '..', 'src', 'web-builder');
+
+    // Serve static files (JS, CSS, images) from web-builder directory
+    this.app.use(express.static(webBuilderPath));
+
+    this.app.get('/', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'dashboard.html'));
+    });
+
+    this.app.get('/dashboard', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'dashboard.html'));
+    });
+
+    this.app.get('/login', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'login.html'));
+    });
+
+    this.app.get('/signup', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'signup.html'));
+    });
+
+    this.app.get('/forgot-password', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'forgot-password.html'));
+    });
+
+    this.app.get('/builder', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'index.html'));
+    });
+
+    // Serve JavaScript files explicitly
+    this.app.get('/builder.js', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'builder.js'));
+    });
+
+    this.app.get('/dashboard.js', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'dashboard.js'));
+    });
+
+    this.app.get('/login.js', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'login.js'));
+    });
+
+    this.app.get('/signup.js', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'signup.js'));
+    });
+
+    this.app.get('/forgot-password.js', (req, res) => {
+      res.sendFile(path.join(webBuilderPath, 'forgot-password.js'));
+    });
+  }
+
   private setupErrorHandling(): void {
     this.app.use(errorHandler);
   }
 
   async start(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
-        this.server = this.app.listen(this.config.port, this.config.host || 'localhost', () => {
-          console.log(`🚀 MockAuth server running on http://${this.config.host || 'localhost'}:${this.config.port}`);
-          console.log(`📚 API Documentation: ${this.config.baseUrl}/api`);
-          console.log(`❤️  Health Check: ${this.config.baseUrl}/health`);
-          
-          // Start cleanup interval for expired sessions
-          setInterval(async () => {
-            const cleaned = await this.authService.cleanupExpiredSessions();
-            if (cleaned > 0) {
-              console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
-            }
-          }, 5 * 60 * 1000); // Every 5 minutes
+        // Initialize database first
+        await this.databaseService.connect();
+        // Initialize ecosystem services (non-blocking)
+        try {
+          await this.ecosystemService.initialize();
+        } catch (error) {
+          console.warn('⚠️ Some ecosystem services failed to start, but MockAuth will continue');
+          console.log('💡 You can check the logs above for specific service issues');
+        }
 
-          resolve();
-        });
+        this.server = this.app.listen(
+          this.config.port,
+          this.config.host || 'localhost',
+          () => {
+            console.log(
+              `🚀 MockAuth server running on http://${this.config.host || 'localhost'}:${this.config.port}`
+            );
+            console.log(`📚 API Documentation: ${this.config.baseUrl}/api`);
+            console.log(`❤️  Health Check: ${this.config.baseUrl}/health`);
+
+            // Log ecosystem status
+            if (this.config.ecosystem?.mocktail?.enabled) {
+              console.log(`🎭 MockTail: Mock data generation enabled`);
+            }
+            if (this.config.ecosystem?.schemaghost?.enabled) {
+              console.log(`👻 SchemaGhost: Mock API server enabled`);
+            }
+
+            // Start cleanup interval for expired sessions with error handling
+            this.cleanupInterval = setInterval(
+              async () => {
+                try {
+                  const cleaned =
+                    await this.authService.cleanupExpiredSessions();
+                  if (cleaned > 0) {
+                    console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
+                  }
+                } catch (error) {
+                  console.error('❌ Session cleanup failed:', error);
+                }
+              },
+              5 * 60 * 1000
+            ); // Every 5 minutes
+
+            resolve();
+          }
+        );
 
         this.server.on('error', (error: any) => {
           if (error.code === 'EADDRINUSE') {
@@ -191,7 +393,19 @@ export class MockAuth {
   }
 
   async stop(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      // Clear cleanup interval to prevent memory leaks
+      if (this.cleanupInterval) {
+        clearInterval(this.cleanupInterval);
+        this.cleanupInterval = null;
+        console.log('🧹 Cleanup interval cleared');
+      }
+
+      // Stop ecosystem services first
+      await this.ecosystemService.stop();
+      // Disconnect from database
+      await this.databaseService.disconnect();
+
       if (this.server) {
         this.server.close(() => {
           console.log('🛑 MockAuth server stopped');
@@ -216,6 +430,14 @@ export class MockAuth {
     return { ...this.config };
   }
 
+  getEcosystemService(): EcosystemService {
+    return this.ecosystemService;
+  }
+
+  getDatabaseService(): DatabaseService {
+    return this.databaseService;
+  }
+
   async createUser(userData: {
     email: string;
     username: string;
@@ -228,7 +450,10 @@ export class MockAuth {
     return this.userService.createUser(userData);
   }
 
-  async login(email: string, password: string): Promise<{
+  async login(
+    email: string,
+    password: string
+  ): Promise<{
     user: Omit<User, 'password'>;
     token: string;
     refreshToken: string;
@@ -288,13 +513,27 @@ export class MockAuth {
 
   private initializeUsersSync(): void {
     if (this.config.users && this.config.users.length > 0) {
+      console.log(`📝 Initializing ${this.config.users.length} user(s)...`);
+      let successCount = 0;
+      let failCount = 0;
+
       for (const userData of this.config.users) {
         try {
           // Create user directly in the user service
           this.userService.createUserSync(userData);
+          successCount++;
         } catch (error) {
-          console.warn(`Failed to initialize user ${userData.email}:`, error);
+          failCount++;
+          console.error(
+            `❌ Failed to initialize user ${userData.email}:`,
+            error
+          );
         }
+      }
+
+      console.log(`✅ Successfully initialized ${successCount} user(s)`);
+      if (failCount > 0) {
+        console.warn(`⚠️  Failed to initialize ${failCount} user(s)`);
       }
     }
   }

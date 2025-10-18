@@ -11,6 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAuthRoutes = void 0;
 const express_1 = require("express");
+// SECURITY NOTE: Using express-validator which depends on validator package.
+// The validator package has a known URL validation vulnerability (GHSA-9965-vmph-33xx).
+// This does NOT affect MockAuth as we only use isEmail() and isLength() functions,
+// which are not affected by the vulnerability. The isURL() function is never used.
+// See SECURITY.md for more details.
 const express_validator_1 = require("express-validator");
 function createAuthRoutes(authService, userService, webhookService, auditService) {
     const router = (0, express_1.Router)();
@@ -67,14 +72,22 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 yield auditService.log({
                     action: 'user.login',
                     resource: 'auth',
-                    details: { email: req.body.email, success: false, error: error.message },
+                    details: {
+                        email: req.body.email,
+                        success: false,
+                        error: error.message,
+                    },
                     ipAddress: req.ip,
                     userAgent: req.get('User-Agent'),
                     success: false,
                     error: error.message,
                 });
             }
-            res.status(401).json({
+            // Check if it's an account lockout error
+            const isLockoutError = error.message.includes('Account is locked') ||
+                error.message.includes('Account locked due to too many failed attempts');
+            const statusCode = isLockoutError ? 423 : 401;
+            res.status(statusCode).json({
                 success: false,
                 error: error.message || 'Login failed',
             });
@@ -133,14 +146,22 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 yield auditService.log({
                     action: 'user.created',
                     resource: 'auth',
-                    details: { email: req.body.email, success: false, error: error.message },
+                    details: {
+                        email: req.body.email,
+                        success: false,
+                        error: error.message,
+                    },
                     ipAddress: req.ip,
                     userAgent: req.get('User-Agent'),
                     success: false,
                     error: error.message,
                 });
             }
-            res.status(400).json({
+            // Check if it's a duplicate email error
+            const isDuplicateEmail = error.message.includes('already exists') ||
+                error.message.includes('Email already registered');
+            const statusCode = isDuplicateEmail ? 409 : 400;
+            res.status(statusCode).json({
                 success: false,
                 error: error.message || 'Registration failed',
             });
@@ -213,9 +234,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         }
     }));
     // Refresh token endpoint
-    router.post('/refresh', [
-        (0, express_validator_1.body)('refreshToken').isLength({ min: 1 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/refresh', [(0, express_validator_1.body)('refreshToken').isLength({ min: 1 })], (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -585,9 +604,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     }));
     // Password Reset Routes
     // Request password reset
-    router.post('/password-reset/request', [
-        (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/password-reset/request', [(0, express_validator_1.body)('email').isEmail().normalizeEmail()], (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -613,9 +630,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         }
     }));
     // Verify password reset token
-    router.post('/password-reset/verify', [
-        (0, express_validator_1.body)('token').isLength({ min: 1 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/password-reset/verify', [(0, express_validator_1.body)('token').isLength({ min: 1 })], (req, res) => __awaiter(this, void 0, void 0, function* () {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {

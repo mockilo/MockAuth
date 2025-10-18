@@ -160,7 +160,80 @@ export interface MockAuthConfig {
     passwordPolicy?: PasswordPolicy;
     webhooks?: WebhookConfig;
     cors?: CorsConfig;
+    database?: DatabaseConfig;
     rateLimit?: RateLimitConfig;
+    ecosystem?: EcosystemConfig;
+    sso?: SSOConfig;
+    rbac?: RBACConfig;
+    compliance?: ComplianceConfig;
+}
+export interface DatabaseConfig {
+    type: 'memory' | 'sqlite' | 'postgresql' | 'mysql';
+    connectionString?: string;
+    host?: string;
+    port?: number;
+    database?: string;
+    username?: string;
+    password?: string;
+    ssl?: boolean;
+}
+export interface EcosystemConfig {
+    mocktail?: MockTailConfig;
+    schemaghost?: SchemaGhostConfig;
+}
+export interface MockTailConfig {
+    enabled: boolean;
+    prismaSchemaPath?: string;
+    outputPath?: string;
+    seedCount?: number;
+    customGenerators?: Record<string, any>;
+}
+export interface SchemaGhostConfig {
+    enabled: boolean;
+    port?: number;
+    endpoints?: Array<{
+        path: string;
+        method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+        response: any;
+        statusCode?: number;
+    }>;
+    delay?: number;
+    errorRate?: number;
+}
+export interface SSOConfig {
+    providers: SSOProvider[];
+    defaultProvider?: string;
+    enableSSO: boolean;
+    ssoSecret: string;
+    callbackUrl: string;
+}
+export interface SSOProvider {
+    name: string;
+    type: 'oauth2' | 'saml' | 'oidc';
+    clientId: string;
+    clientSecret: string;
+    authorizationUrl: string;
+    tokenUrl: string;
+    userInfoUrl: string;
+    scope?: string[];
+    redirectUri: string;
+}
+export interface RBACConfig {
+    enableHierarchicalRoles: boolean;
+    enableResourceOwnership: boolean;
+    enablePolicyEngine: boolean;
+    defaultDeny: boolean;
+    auditLogging: boolean;
+}
+export interface ComplianceConfig {
+    enableAuditLogging: boolean;
+    auditRetentionDays: number;
+    enablePasswordPolicy: boolean;
+    enableSessionMonitoring: boolean;
+    enableDataEncryption: boolean;
+    enableAccessControl: boolean;
+    complianceStandards: string[];
+    reportingInterval: number;
 }
 export interface PasswordPolicy {
     minLength: number;
@@ -298,5 +371,48 @@ export interface HealthCheck {
         jwt: 'valid' | 'invalid';
         rateLimit: 'active' | 'inactive';
     };
+}
+export interface WebhookService {
+    send(eventName: string, data: any): Promise<void>;
+}
+export interface AuditService {
+    log(logData: {
+        action: string;
+        resource: string;
+        details: Record<string, any>;
+        ipAddress?: string;
+        userAgent?: string;
+        success: boolean;
+        error?: string;
+        userId?: string;
+    }): Promise<void>;
+    getLogs(filters?: {
+        userId?: string;
+        action?: string;
+        resource?: string;
+        startDate?: Date;
+        endDate?: Date;
+        success?: boolean;
+    }): Promise<AuditLog[]>;
+    getStats(): Promise<{
+        total: number;
+        byAction: Record<string, number>;
+        byResource: Record<string, number>;
+        successRate: number;
+        recentActivity: number;
+    }>;
+}
+export interface EcosystemService {
+    initialize(): Promise<void>;
+    stop(): Promise<void>;
+    getMockTailConfig(): MockTailConfig;
+    getSchemaGhostConfig(): SchemaGhostConfig;
+    generateMockData(type: string, count?: number): Promise<any[]>;
+    createMockEndpoint(path: string, method: string, response: any): Promise<void>;
+}
+export interface DatabaseService {
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    [key: string]: any;
 }
 //# sourceMappingURL=index.d.ts.map

@@ -1,5 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { PasswordResetRequest, PasswordResetResponse, PasswordResetVerifyRequest, PasswordResetCompleteRequest, PasswordResetCompleteResponse } from '../types';
+import {
+  PasswordResetRequest,
+  PasswordResetResponse,
+  PasswordResetVerifyRequest,
+  PasswordResetCompleteRequest,
+  PasswordResetCompleteResponse,
+} from '../types';
 
 export interface PasswordResetToken {
   token: string;
@@ -21,13 +27,15 @@ export class PasswordResetService {
   /**
    * Request password reset for a user
    */
-  async requestPasswordReset(request: PasswordResetRequest): Promise<PasswordResetResponse> {
+  async requestPasswordReset(
+    request: PasswordResetRequest
+  ): Promise<PasswordResetResponse> {
     const { email } = request;
 
     // In a real implementation, you would check if the user exists
     // For MockAuth, we'll always return success to prevent email enumeration
     const token = this.generateResetToken(email);
-    
+
     // Store the reset token
     this.resetTokens.set(token, {
       token,
@@ -35,7 +43,7 @@ export class PasswordResetService {
       email,
       expiresAt: new Date(Date.now() + this.tokenExpiry),
       used: false,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     // Add to user's reset tokens
@@ -46,14 +54,16 @@ export class PasswordResetService {
     return {
       success: true,
       message: 'Password reset instructions have been sent to your email',
-      token // In production, don't return the token
+      token, // In production, don't return the token
     };
   }
 
   /**
    * Verify password reset token
    */
-  async verifyResetToken(request: PasswordResetVerifyRequest): Promise<{ valid: boolean; message: string }> {
+  async verifyResetToken(
+    request: PasswordResetVerifyRequest
+  ): Promise<{ valid: boolean; message: string }> {
     const { token } = request;
     const resetToken = this.resetTokens.get(token);
 
@@ -75,7 +85,9 @@ export class PasswordResetService {
   /**
    * Complete password reset
    */
-  async completePasswordReset(request: PasswordResetCompleteRequest): Promise<PasswordResetCompleteResponse> {
+  async completePasswordReset(
+    request: PasswordResetCompleteRequest
+  ): Promise<PasswordResetCompleteResponse> {
     const { token, newPassword } = request;
     const resetToken = this.resetTokens.get(token);
 
@@ -100,7 +112,7 @@ export class PasswordResetService {
 
     return {
       success: true,
-      message: 'Password has been reset successfully'
+      message: 'Password has been reset successfully',
     };
   }
 
@@ -144,9 +156,9 @@ export class PasswordResetService {
 
     return {
       total: tokens.length,
-      active: tokens.filter(t => !t.used && t.expiresAt > now).length,
-      expired: tokens.filter(t => t.expiresAt <= now).length,
-      used: tokens.filter(t => t.used).length
+      active: tokens.filter((t) => !t.used && t.expiresAt > now).length,
+      expired: tokens.filter((t) => t.expiresAt <= now).length,
+      used: tokens.filter((t) => t.used).length,
     };
   }
 

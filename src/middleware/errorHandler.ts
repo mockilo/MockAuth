@@ -23,7 +23,7 @@ export function errorHandler(
 
   // Set appropriate status code
   let statusCode = 500;
-  
+
   if (error.name === 'ValidationError') {
     statusCode = 400;
   } else if (error.name === 'UnauthorizedError') {

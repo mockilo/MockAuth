@@ -1,150 +1,160 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MFAService = void 0;
-class MFAService {
-    /**
-     * Generate a random secret for TOTP
-     */
-    static generateSecret() {
-        // Generate a 32-character base32 secret
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-        let secret = '';
-        for (let i = 0; i < 32; i++) {
-            secret += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return secret;
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
-    /**
-     * Generate backup codes for MFA
-     */
-    static generateBackupCodes() {
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createMFAService = exports.MFAService = void 0;
+const speakeasy = __importStar(require("speakeasy"));
+const QRCode = __importStar(require("qrcode"));
+class MFAService {
+    static getInstance() {
+        if (!MFAService.instance) {
+            MFAService.instance = new MFAService();
+        }
+        return MFAService.instance;
+    }
+    // Static method for tests
+    static generateSecret() {
+        const secret = speakeasy.generateSecret({
+            name: 'test@example.com',
+            issuer: 'MockAuth',
+            length: 32,
+        });
+        return secret.base32;
+    }
+    // Static method for tests
+    static generateQRCodeData(secret, email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const otpauthUrl = `otpauth://totp/MockAuth:${email}?secret=${secret}&issuer=MockAuth`;
+            try {
+                const qrCodeDataURL = yield QRCode.toDataURL(otpauthUrl);
+                return qrCodeDataURL;
+            }
+            catch (error) {
+                throw new Error(`Failed to generate QR code: ${error.message}`);
+            }
+        });
+    }
+    generateSecret(user) {
+        const secret = speakeasy.generateSecret({
+            name: user.email,
+            issuer: 'MockAuth',
+            length: 32,
+        });
+        return {
+            secret: secret.base32,
+            qrCode: secret.otpauth_url || '',
+        };
+    }
+    generateQRCode(secret, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const otpauthUrl = `otpauth://totp/MockAuth:${user.email}?secret=${secret}&issuer=MockAuth`;
+            try {
+                const qrCodeDataURL = yield QRCode.toDataURL(otpauthUrl);
+                return qrCodeDataURL;
+            }
+            catch (error) {
+                throw new Error(`Failed to generate QR code: ${error.message}`);
+            }
+        });
+    }
+    verifyToken(secret, token) {
+        return speakeasy.totp.verify({
+            secret,
+            encoding: 'base32',
+            token,
+            window: 2, // Allow 2 time steps (60 seconds) of variance
+        });
+    }
+    generateBackupCodes(count = 10) {
         const codes = [];
-        for (let i = 0; i < this.BACKUP_CODE_COUNT; i++) {
-            codes.push(this.generateBackupCode());
+        for (let i = 0; i < count; i++) {
+            codes.push(this.generateRandomCode());
         }
         return codes;
     }
-    /**
-     * Generate a single backup code
-     */
-    static generateBackupCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-        let code = '';
-        for (let i = 0; i < this.BACKUP_CODE_LENGTH; i++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
+    generateRandomCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        return code;
+        return result;
     }
-    /**
-     * Generate QR code data for authenticator app setup
-     */
-    static generateQRCodeData(secret, email, issuer = 'MockAuth') {
-        const encodedEmail = encodeURIComponent(email);
-        const encodedIssuer = encodeURIComponent(issuer);
-        return `otpauth://totp/${encodedIssuer}:${encodedEmail}?secret=${secret}&issuer=${encodedIssuer}`;
-    }
-    /**
-     * Setup MFA for a user
-     */
-    static setupMFA(userId, email) {
-        const secret = this.generateSecret();
-        const backupCodes = this.generateBackupCodes();
-        const qrCode = this.generateQRCodeData(secret, email);
-        return {
-            secret,
-            qrCode,
-            backupCodes,
-        };
-    }
-    /**
-     * Verify TOTP code
-     */
-    static verifyTOTP(secret, code) {
-        // In a real implementation, you would use a proper TOTP library
-        // For MockAuth, we'll simulate verification with a simple check
-        // This is a mock implementation - in production, use a proper TOTP library
-        const currentTime = Math.floor(Date.now() / 1000);
-        const timeStep = 30; // 30-second time steps
-        // Check current time step and previous/next for tolerance
-        for (let i = -this.TOTP_WINDOW; i <= this.TOTP_WINDOW; i++) {
-            const time = currentTime + (i * timeStep);
-            const expectedCode = this.generateTOTPCode(secret, time);
-            if (expectedCode === code) {
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
-     * Generate TOTP code for a given time (mock implementation)
-     */
-    static generateTOTPCode(secret, time) {
-        // This is a simplified mock implementation
-        // In production, use a proper TOTP library like 'otplib'
-        const timeStep = Math.floor(time / 30);
-        const hash = this.simpleHash(secret + timeStep);
-        const code = (hash % 1000000).toString().padStart(6, '0');
-        return code;
-    }
-    /**
-     * Simple hash function for mock TOTP (not cryptographically secure)
-     */
-    static simpleHash(input) {
-        let hash = 0;
-        for (let i = 0; i < input.length; i++) {
-            const char = input.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32-bit integer
-        }
-        return Math.abs(hash);
-    }
-    /**
-     * Verify backup code
-     */
-    static verifyBackupCode(backupCodes, code) {
+    verifyBackupCode(backupCodes, code) {
         const index = backupCodes.indexOf(code);
-        if (index === -1) {
-            return { valid: false, remainingCodes: backupCodes };
+        if (index !== -1) {
+            // Remove used backup code
+            backupCodes.splice(index, 1);
+            return { valid: true, remainingCodes: [...backupCodes] };
         }
-        // Remove used backup code
-        const remainingCodes = backupCodes.filter((_, i) => i !== index);
-        return { valid: true, remainingCodes };
+        return { valid: false, remainingCodes: [...backupCodes] };
     }
-    /**
-     * Create MFA configuration
-     */
-    static createMFAConfig(secret, backupCodes) {
-        return {
-            enabled: true,
-            secret,
-            backupCodes,
-            createdAt: new Date(),
-        };
+    // Static methods for AuthService compatibility
+    static setupMFA(user) {
+        const instance = MFAService.getInstance();
+        const secret = instance.generateSecret(user);
+        const backupCodes = instance.generateBackupCodes();
+        return Object.assign(Object.assign({}, secret), { backupCodes });
     }
-    /**
-     * Disable MFA for a user
-     */
-    static disableMFA() {
-        return {
-            enabled: false,
-        };
+    static createMFAConfig(user) {
+        return MFAService.setupMFA(user);
     }
-    /**
-     * Check if MFA is enabled for a user
-     */
-    static isMFAEnabled(mfaConfig) {
-        return (mfaConfig === null || mfaConfig === void 0 ? void 0 : mfaConfig.enabled) === true;
+    static verifyTOTP(secret, token) {
+        return MFAService.getInstance().verifyToken(secret, token);
     }
-    /**
-     * Get remaining backup codes count
-     */
-    static getRemainingBackupCodes(mfaConfig) {
+    static verifyBackupCode(backupCodes, code) {
+        return MFAService.getInstance().verifyBackupCode(backupCodes, code);
+    }
+    static disableMFA(user) {
+        // Implementation for disabling MFA
+        console.log(`MFA disabled for user: ${user.email}`);
+        return undefined;
+    }
+    static isMFAEnabled(user) {
         var _a;
-        return ((_a = mfaConfig === null || mfaConfig === void 0 ? void 0 : mfaConfig.backupCodes) === null || _a === void 0 ? void 0 : _a.length) || 0;
+        return ((_a = user.mfa) === null || _a === void 0 ? void 0 : _a.enabled) || false;
+    }
+    static getRemainingBackupCodes(user) {
+        var _a, _b;
+        return ((_b = (_a = user.mfa) === null || _a === void 0 ? void 0 : _a.backupCodes) === null || _b === void 0 ? void 0 : _b.length) || 0;
+    }
+    static generateBackupCodes() {
+        return MFAService.getInstance().generateBackupCodes();
     }
 }
 exports.MFAService = MFAService;
-MFAService.TOTP_WINDOW = 1; // Allow 1 time step tolerance
-MFAService.BACKUP_CODE_LENGTH = 8;
-MFAService.BACKUP_CODE_COUNT = 10;
+function createMFAService() {
+    return MFAService.getInstance();
+}
+exports.createMFAService = createMFAService;
 //# sourceMappingURL=MFAService.js.map

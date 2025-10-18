@@ -1,0 +1,12 @@
+{
+  "name": "better-auth-migration",
+  "version": "1.0.0",
+  "description": "Better-Auth migration from MockAuth",
+  "dependencies": {
+    "better-auth": "^0.8.0",
+    "better-auth-client": "^0.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

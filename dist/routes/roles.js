@@ -22,7 +22,13 @@ function createRoleRoutes(userService, authService, webhookService, auditService
         {
             name: 'admin',
             description: 'Administrator with full access',
-            permissions: ['read:users', 'write:users', 'delete:users', 'read:roles', 'write:roles'],
+            permissions: [
+                'read:users',
+                'write:users',
+                'delete:users',
+                'read:roles',
+                'write:roles',
+            ],
             createdAt: new Date(),
             updatedAt: new Date(),
         },
@@ -42,19 +48,73 @@ function createRoleRoutes(userService, authService, webhookService, auditService
         },
     ];
     const defaultPermissions = [
-        { name: 'read:users', description: 'Read user information', resource: 'users', action: 'read', createdAt: new Date() },
-        { name: 'write:users', description: 'Create and update users', resource: 'users', action: 'write', createdAt: new Date() },
-        { name: 'delete:users', description: 'Delete users', resource: 'users', action: 'delete', createdAt: new Date() },
-        { name: 'read:profile', description: 'Read own profile', resource: 'profile', action: 'read', createdAt: new Date() },
-        { name: 'write:profile', description: 'Update own profile', resource: 'profile', action: 'write', createdAt: new Date() },
-        { name: 'read:roles', description: 'Read roles and permissions', resource: 'roles', action: 'read', createdAt: new Date() },
-        { name: 'write:roles', description: 'Create and update roles', resource: 'roles', action: 'write', createdAt: new Date() },
-        { name: 'write:content', description: 'Create and update content', resource: 'content', action: 'write', createdAt: new Date() },
-        { name: 'delete:content', description: 'Delete content', resource: 'content', action: 'delete', createdAt: new Date() },
+        {
+            name: 'read:users',
+            description: 'Read user information',
+            resource: 'users',
+            action: 'read',
+            createdAt: new Date(),
+        },
+        {
+            name: 'write:users',
+            description: 'Create and update users',
+            resource: 'users',
+            action: 'write',
+            createdAt: new Date(),
+        },
+        {
+            name: 'delete:users',
+            description: 'Delete users',
+            resource: 'users',
+            action: 'delete',
+            createdAt: new Date(),
+        },
+        {
+            name: 'read:profile',
+            description: 'Read own profile',
+            resource: 'profile',
+            action: 'read',
+            createdAt: new Date(),
+        },
+        {
+            name: 'write:profile',
+            description: 'Update own profile',
+            resource: 'profile',
+            action: 'write',
+            createdAt: new Date(),
+        },
+        {
+            name: 'read:roles',
+            description: 'Read roles and permissions',
+            resource: 'roles',
+            action: 'read',
+            createdAt: new Date(),
+        },
+        {
+            name: 'write:roles',
+            description: 'Create and update roles',
+            resource: 'roles',
+            action: 'write',
+            createdAt: new Date(),
+        },
+        {
+            name: 'write:content',
+            description: 'Create and update content',
+            resource: 'content',
+            action: 'write',
+            createdAt: new Date(),
+        },
+        {
+            name: 'delete:content',
+            description: 'Delete content',
+            resource: 'content',
+            action: 'delete',
+            createdAt: new Date(),
+        },
     ];
     // Initialize data
-    defaultRoles.forEach(role => roles.set(role.name, role));
-    defaultPermissions.forEach(permission => permissions.set(permission.name, permission));
+    defaultRoles.forEach((role) => roles.set(role.name, role));
+    defaultPermissions.forEach((permission) => permissions.set(permission.name, permission));
     // Middleware to verify admin access
     const requireAdmin = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -264,7 +324,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
             }
             // Check if role is in use
             const users = yield userService.getAllUsers();
-            const usersWithRole = users.filter(user => user.roles.includes(name));
+            const usersWithRole = users.filter((user) => user.roles.includes(name));
             if (usersWithRole.length > 0) {
                 return res.status(409).json({
                     success: false,

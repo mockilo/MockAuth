@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { HealthCheck } from '../types';
+import { cacheMiddleware } from '../middleware/caching';
+import { performanceMonitor } from '../middleware/performance';
 
 export function createHealthRoutes(): Router {
   const router = Router();
 
-  // Basic health check
-  router.get('/', (req, res) => {
+  // Basic health check with caching
+  router.get('/', cacheMiddleware({ ttl: 30000 }), (req, res) => {
     const healthCheck: HealthCheck = {
       status: 'healthy',
       timestamp: new Date(),
@@ -21,7 +23,10 @@ export function createHealthRoutes(): Router {
 
     res.json({
       success: true,
-      data: healthCheck,
+      data: {
+        ...healthCheck,
+        performance: performanceMonitor.getMetrics(),
+      },
     });
   });
 

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2015",
     "module": "commonjs",
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
@@ -26,6 +26,8 @@
     "allowUnreachableCode": false,
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "types": ["node", "jest"],
+    "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
@@ -44,6 +46,7 @@
     "dist",
     "tests",
     "examples",
+    "src/components/**/*",
     "**/*.test.ts",
     "**/*.spec.ts"
   ]

@@ -34,7 +34,7 @@ class PasswordResetService {
                 email,
                 expiresAt: new Date(Date.now() + this.tokenExpiry),
                 used: false,
-                createdAt: new Date()
+                createdAt: new Date(),
             });
             // Add to user's reset tokens
             const userTokens = this.userResetTokens.get('mock-user-id') || [];
@@ -43,7 +43,7 @@ class PasswordResetService {
             return {
                 success: true,
                 message: 'Password reset instructions have been sent to your email',
-                token // In production, don't return the token
+                token, // In production, don't return the token
             };
         });
     }
@@ -89,7 +89,7 @@ class PasswordResetService {
             // For MockAuth, we'll just return success
             return {
                 success: true,
-                message: 'Password has been reset successfully'
+                message: 'Password has been reset successfully',
             };
         });
     }
@@ -125,9 +125,9 @@ class PasswordResetService {
         const tokens = Array.from(this.resetTokens.values());
         return {
             total: tokens.length,
-            active: tokens.filter(t => !t.used && t.expiresAt > now).length,
-            expired: tokens.filter(t => t.expiresAt <= now).length,
-            used: tokens.filter(t => t.used).length
+            active: tokens.filter((t) => !t.used && t.expiresAt > now).length,
+            expired: tokens.filter((t) => t.expiresAt <= now).length,
+            used: tokens.filter((t) => t.used).length,
         };
     }
     /**

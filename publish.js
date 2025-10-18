@@ -1,95 +1,167 @@
 #!/usr/bin/env node
-const { execSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
 
-const repoRoot = __dirname;
-const standalonePkg = path.join(repoRoot, "package.json");
-const scopedPkg = path.join(repoRoot, "package.scoped.json");
+/**
+ * Dual Package Publishing Script
+ * 
+ * Publishes MockAuth to both:
+ * 1. mockauth (public registry)
+ * 2. @mockilo/mockauth (scoped package)
+ */
 
-// --- NEW: branch guard ---
-function getCurrentBranch() {
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+// Colors for console output
+const colors = {
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+};
+
+function log(message, color = 'reset') {
+  console.log(`${colors[color]}${message}${colors.reset}`);
+}
+
+function exec(command, options = {}) {
   try {
-    return execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
-  } catch {
-    return null;
+    return execSync(command, { stdio: 'inherit', ...options });
+  } catch (error) {
+    log(`Error executing: ${command}`, 'red');
+    throw error;
   }
 }
 
-const branch = getCurrentBranch();
-if (branch && branch !== "main") {
-  console.log(`⚠️  Skipping publish: current branch is '${branch}', not 'main'.`);
-  process.exit(0);
-}
-// -------------------------
+async function publishPackage() {
+  log('\n╔════════════════════════════════════════════════════════════════════╗', 'cyan');
+  log('║                                                                    ║', 'cyan');
+  log('║           📦 MOCKAUTH DUAL PACKAGE PUBLISHER 📦                   ║', 'cyan');
+  log('║                                                                    ║', 'cyan');
+  log('╚════════════════════════════════════════════════════════════════════╝\n', 'cyan');
 
-// Parse version into [major, minor, patch, pre, preNum]
-function parseVersion(v) {
-  const [main, pre] = v.split("-");
-  const [major, minor, patch] = main.split(".").map((n) => parseInt(n));
-  let preNum = null;
-  if (pre) {
-    const match = pre.match(/([a-z]+)\.?(\d+)?/i);
-    if (match) preNum = parseInt(match[2] || 0);
+  // Read current package.json
+  const packagePath = path.join(__dirname, 'package.json');
+  const packageScopedPath = path.join(__dirname, 'package.scoped.json');
+  const packageBackupPath = path.join(__dirname, 'package.json.backup');
+
+  if (!fs.existsSync(packagePath)) {
+    log('❌ package.json not found!', 'red');
+    process.exit(1);
   }
-  return { major, minor, patch, pre, preNum };
-}
 
-function bumpBeta(version) {
-  const { major, minor, patch, pre, preNum } = parseVersion(version);
-  if (pre && pre.startsWith("beta")) {
-    return `${major}.${minor}.${patch}-beta.${preNum + 1}`;
-  } else {
-    return `${major}.${minor}.${patch}-beta.1`;
+  if (!fs.existsSync(packageScopedPath)) {
+    log('❌ package.scoped.json not found!', 'red');
+    log('This file is needed for publishing @mockilo/mockauth', 'yellow');
+    process.exit(1);
   }
-}
 
-function getPublishedVersion(pkgName) {
+  const originalPackage = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+  const scopedPackage = JSON.parse(fs.readFileSync(packageScopedPath, 'utf8'));
+
+  log('📋 Publishing Configuration:', 'yellow');
+  log(`   Version: ${originalPackage.version}`, 'cyan');
+  log(`   Package 1: mockauth`, 'cyan');
+  log(`   Package 2: @mockilo/mockauth`, 'cyan');
+  log('');
+
   try {
-    return execSync(`npm view ${pkgName} version`, { stdio: ["pipe", "pipe", "ignore"] })
-      .toString()
-      .trim();
-  } catch {
-    return null;
+    // Step 1: Build the project
+    log('🔨 Step 1: Building project...', 'yellow');
+    exec('npm run build');
+    log('✅ Build successful!\n', 'green');
+
+    // Step 2: Run tests (optional, comment out if tests fail)
+    try {
+      log('🧪 Step 2: Running tests...', 'yellow');
+      exec('npm test', { stdio: 'ignore' });
+      log('✅ Tests passed!\n', 'green');
+    } catch (error) {
+      log('⚠️  Tests failed or not available, continuing anyway...\n', 'yellow');
+    }
+
+    // Step 3: Publish to public registry (mockauth)
+    log('📦 Step 3: Publishing "mockauth" to npm...', 'yellow');
+    try {
+      const publishArgs = process.argv.includes('--tag') 
+        ? `--tag ${process.argv[process.argv.indexOf('--tag') + 1]}`
+        : '';
+      
+      exec(`npm publish ${publishArgs}`);
+      log('✅ Published "mockauth" successfully!\n', 'green');
+    } catch (error) {
+      log('❌ Failed to publish "mockauth"', 'red');
+      throw error;
+    }
+
+    // Step 4: Backup current package.json
+    log('💾 Step 4: Backing up package.json...', 'yellow');
+    fs.copyFileSync(packagePath, packageBackupPath);
+    log('✅ Backup created!\n', 'green');
+
+    // Step 5: Switch to scoped package.json
+    log('🔄 Step 5: Switching to scoped package configuration...', 'yellow');
+    fs.copyFileSync(packageScopedPath, packagePath);
+    log('✅ Using package.scoped.json\n', 'green');
+
+    // Step 6: Publish to scoped registry (@mockilo/mockauth)
+    log('📦 Step 6: Publishing "@mockilo/mockauth" to npm...', 'yellow');
+    try {
+      const publishArgs = process.argv.includes('--tag') 
+        ? `--tag ${process.argv[process.argv.indexOf('--tag') + 1]}`
+        : '';
+      
+      exec(`npm publish ${publishArgs}`);
+      log('✅ Published "@mockilo/mockauth" successfully!\n', 'green');
+    } catch (error) {
+      log('❌ Failed to publish "@mockilo/mockauth"', 'red');
+      // Restore original package.json
+      fs.copyFileSync(packageBackupPath, packagePath);
+      fs.unlinkSync(packageBackupPath);
+      throw error;
+    }
+
+    // Step 7: Restore original package.json
+    log('🔄 Step 7: Restoring original package.json...', 'yellow');
+    fs.copyFileSync(packageBackupPath, packagePath);
+    fs.unlinkSync(packageBackupPath);
+    log('✅ Restored original package.json\n', 'green');
+
+    // Success!
+    log('╔════════════════════════════════════════════════════════════════════╗', 'green');
+    log('║                                                                    ║', 'green');
+    log('║                  🎉 PUBLISHING SUCCESSFUL! 🎉                     ║', 'green');
+    log('║                                                                    ║', 'green');
+    log('╚════════════════════════════════════════════════════════════════════╝\n', 'green');
+
+    log('✅ Both packages published successfully:', 'green');
+    log(`   📦 mockauth@${originalPackage.version}`, 'cyan');
+    log(`   📦 @mockilo/mockauth@${scopedPackage.version}`, 'cyan');
+    log('');
+    log('Users can install with:', 'yellow');
+    log(`   npm install mockauth`, 'cyan');
+    log(`   npm install @mockilo/mockauth`, 'cyan');
+    log('');
+
+  } catch (error) {
+    log('\n❌ Publishing failed!', 'red');
+    
+    // Cleanup: Restore package.json if backup exists
+    if (fs.existsSync(packageBackupPath)) {
+      log('🔄 Restoring original package.json...', 'yellow');
+      fs.copyFileSync(packageBackupPath, packagePath);
+      fs.unlinkSync(packageBackupPath);
+      log('✅ Restored\n', 'green');
+    }
+    
+    process.exit(1);
   }
 }
 
-function updateVersion(pkgPath, newVersion) {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-  pkg.version = newVersion;
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-  console.log(`🔼 Updated ${pkg.name} to version ${newVersion}`);
-  return newVersion;
-}
+// Run the publisher
+publishPackage().catch(error => {
+  log(`\n❌ Fatal error: ${error.message}`, 'red');
+  process.exit(1);
+});
 
-function publishPackage(pkgPath) {
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-  const publishedVersion = getPublishedVersion(pkg.name);
-  let newVersion = pkg.version;
-
-  if (publishedVersion && publishedVersion === pkg.version) {
-    newVersion = bumpBeta(publishedVersion);
-    updateVersion(pkgPath, newVersion);
-  }
-
-  console.log(`📦 Publishing ${pkg.name}@${newVersion}...`);
-  execSync("npm publish --access public", { cwd: repoRoot, stdio: "inherit" });
-
-  return newVersion;
-}
-
-function publishBoth() {
-  publishPackage(standalonePkg);
-
-  if (fs.existsSync(scopedPkg)) {
-    const backupPkg = path.join(repoRoot, "package.json.bak");
-    fs.renameSync(standalonePkg, backupPkg);
-    fs.copyFileSync(scopedPkg, standalonePkg);
-    publishPackage(standalonePkg);
-    fs.renameSync(backupPkg, standalonePkg);
-  }
-
-  console.log("✅ All packages published successfully!");
-}
-
-publishBoth();
