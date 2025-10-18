@@ -141,7 +141,6 @@ webpack.config.js
 .babelrc
 babel.config.js
 .eslintrc.js
-.eslintrc.json
 .prettierrc
 .prettierrc.js
 .prettierrc.json
