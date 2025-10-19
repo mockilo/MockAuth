@@ -27,7 +27,7 @@
     "allowUnreachableCode": false,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "types": ["node", "jest"],
+    "types": ["node"],
     "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
