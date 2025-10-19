@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSSORoutes = createSSORoutes;
+exports.createSSORoutes = void 0;
 const express_1 = require("express");
 function createSSORoutes(ssoService) {
     const router = (0, express_1.Router)();
@@ -132,4 +132,5 @@ function createSSORoutes(ssoService) {
     });
     return router;
 }
+exports.createSSORoutes = createSSORoutes;
 //# sourceMappingURL=sso.js.map

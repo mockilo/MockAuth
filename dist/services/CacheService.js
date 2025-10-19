@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CacheService = void 0;
-exports.createCacheService = createCacheService;
+exports.createCacheService = exports.CacheService = void 0;
 class CacheService {
     constructor() {
         this.cache = new Map();
@@ -79,4 +78,5 @@ exports.CacheService = CacheService;
 function createCacheService() {
     return CacheService.getInstance();
 }
+exports.createCacheService = createCacheService;
 //# sourceMappingURL=CacheService.js.map

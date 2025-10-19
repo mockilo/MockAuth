@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createComplianceRoutes = createComplianceRoutes;
+exports.createComplianceRoutes = void 0;
 const express_1 = require("express");
 function createComplianceRoutes(complianceService) {
     const router = (0, express_1.Router)();
@@ -163,4 +163,5 @@ function createComplianceRoutes(complianceService) {
     });
     return router;
 }
+exports.createComplianceRoutes = createComplianceRoutes;
 //# sourceMappingURL=compliance.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRBACRoutes = createRBACRoutes;
+exports.createRBACRoutes = void 0;
 const express_1 = require("express");
 function createRBACRoutes(rbacService) {
     const router = (0, express_1.Router)();
@@ -103,4 +103,5 @@ function createRBACRoutes(rbacService) {
     });
     return router;
 }
+exports.createRBACRoutes = createRBACRoutes;
 //# sourceMappingURL=rbac.js.map

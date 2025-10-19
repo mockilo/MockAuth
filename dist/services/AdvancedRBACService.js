@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdvancedRBACService = void 0;
-exports.createAdvancedRBACService = createAdvancedRBACService;
+exports.createAdvancedRBACService = exports.AdvancedRBACService = void 0;
 class AdvancedRBACService {
     constructor(config) {
         this.permissions = new Map();
@@ -382,4 +381,5 @@ exports.AdvancedRBACService = AdvancedRBACService;
 function createAdvancedRBACService(config) {
     return new AdvancedRBACService(config);
 }
+exports.createAdvancedRBACService = createAdvancedRBACService;
 //# sourceMappingURL=AdvancedRBACService.js.map

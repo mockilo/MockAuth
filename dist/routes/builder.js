@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createBuilderRoutes = createBuilderRoutes;
+exports.createBuilderRoutes = void 0;
 const express_1 = require("express");
 // In-memory storage for configurations (in production, use database)
 let savedConfiguration = null;
@@ -162,4 +162,5 @@ function createBuilderRoutes(mockAuthInstance) {
     });
     return router;
 }
+exports.createBuilderRoutes = createBuilderRoutes;
 //# sourceMappingURL=builder.js.map

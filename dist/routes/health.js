@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createHealthRoutes = createHealthRoutes;
+exports.createHealthRoutes = void 0;
 const express_1 = require("express");
 const caching_1 = require("../middleware/caching");
 const performance_1 = require("../middleware/performance");
@@ -99,4 +99,5 @@ function createHealthRoutes() {
     });
     return router;
 }
+exports.createHealthRoutes = createHealthRoutes;
 //# sourceMappingURL=health.js.map

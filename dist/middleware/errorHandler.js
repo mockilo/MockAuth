@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandler = errorHandler;
+exports.errorHandler = void 0;
 function errorHandler(error, req, res, next) {
     console.error('Error:', error);
     const errorResponse = {
@@ -35,4 +35,5 @@ function errorHandler(error, req, res, next) {
     }
     res.status(statusCode).json(errorResponse);
 }
+exports.errorHandler = errorHandler;
 //# sourceMappingURL=errorHandler.js.map

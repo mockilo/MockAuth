@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EmailService = void 0;
-exports.createEmailService = createEmailService;
+exports.createEmailService = exports.EmailService = void 0;
 class EmailService {
     constructor(config) {
         this.config = config;
@@ -114,4 +113,5 @@ exports.EmailService = EmailService;
 function createEmailService(config) {
     return new EmailService(config);
 }
+exports.createEmailService = createEmailService;
 //# sourceMappingURL=EmailService.js.map

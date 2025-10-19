@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createWebhookService = createWebhookService;
+exports.createWebhookService = void 0;
 function createWebhookService(config) {
     if (!config) {
         return null;
@@ -31,4 +31,5 @@ function createWebhookService(config) {
         },
     };
 }
+exports.createWebhookService = createWebhookService;
 //# sourceMappingURL=WebhookService.js.map

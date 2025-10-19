@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requestLogger = requestLogger;
+exports.requestLogger = void 0;
 function requestLogger(req, res, next) {
     const start = Date.now();
     // Log request
@@ -14,4 +14,5 @@ function requestLogger(req, res, next) {
     };
     next();
 }
+exports.requestLogger = requestLogger;
 //# sourceMappingURL=requestLogger.js.map

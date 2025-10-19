@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUserRoutes = createUserRoutes;
+exports.createUserRoutes = void 0;
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 function createUserRoutes(userService, authService, webhookService, auditService) {
@@ -354,4 +354,5 @@ function createUserRoutes(userService, authService, webhookService, auditService
     });
     return router;
 }
+exports.createUserRoutes = createUserRoutes;
 //# sourceMappingURL=users.js.map

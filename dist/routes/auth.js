@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAuthRoutes = createAuthRoutes;
+exports.createAuthRoutes = void 0;
 const express_1 = require("express");
 // SECURITY NOTE: Using express-validator which depends on validator package.
 // The validator package has a known URL validation vulnerability (GHSA-9965-vmph-33xx).
@@ -667,4 +667,5 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     });
     return router;
 }
+exports.createAuthRoutes = createAuthRoutes;
 //# sourceMappingURL=auth.js.map

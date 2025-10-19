@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DatabaseService = exports.SQLiteDatabaseAdapter = exports.InMemoryDatabaseAdapter = void 0;
-exports.createDatabaseService = createDatabaseService;
+exports.createDatabaseService = exports.DatabaseService = exports.SQLiteDatabaseAdapter = exports.InMemoryDatabaseAdapter = void 0;
 const PostgreSQLAdapter_1 = require("./PostgreSQLAdapter");
 const MySQLAdapter_1 = require("./MySQLAdapter");
 // In-Memory Database Adapter
@@ -433,4 +432,5 @@ exports.DatabaseService = DatabaseService;
 function createDatabaseService(config) {
     return new DatabaseService(config);
 }
+exports.createDatabaseService = createDatabaseService;
 //# sourceMappingURL=DatabaseService.js.map

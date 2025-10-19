@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ComplianceService = void 0;
-exports.createComplianceService = createComplianceService;
+exports.createComplianceService = exports.ComplianceService = void 0;
 class ComplianceService {
     constructor(config) {
         this.rules = new Map();
@@ -424,4 +423,5 @@ exports.ComplianceService = ComplianceService;
 function createComplianceService(config) {
     return new ComplianceService(config);
 }
+exports.createComplianceService = createComplianceService;
 //# sourceMappingURL=ComplianceService.js.map

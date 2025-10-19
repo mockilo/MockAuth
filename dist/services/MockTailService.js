@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MockTailService = void 0;
-exports.createMockTailService = createMockTailService;
+exports.createMockTailService = exports.MockTailService = void 0;
 class MockTailService {
     constructor(config) {
         this.config = config;
@@ -265,4 +264,5 @@ exports.MockTailService = MockTailService;
 function createMockTailService(config) {
     return new MockTailService(config);
 }
+exports.createMockTailService = createMockTailService;
 //# sourceMappingURL=MockTailService.js.map
