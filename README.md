@@ -1,8 +1,9 @@
-# MockAuth 🎭
+# MockAuth 
 
 > **Developer-first authentication simulator for dev, testing, and staging environments**
 
-[![npm version](https://badge.fury.io/js/mockauth.svg)](https://badge.fury.io/js/mockauth)
+
+[![npm version](https://img.shields.io/npm/v/mockauth.svg)](https://www.npmjs.com/package/mockauth)
 [![npm downloads](https://img.shields.io/npm/dm/mockauth.svg)](https://www.npmjs.com/package/mockauth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
