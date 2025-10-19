@@ -60,10 +60,6 @@ MockAuth is a comprehensive authentication simulation platform designed for deve
 ### 🌐 **Ecosystem Integration** (Built-In!)
 - **MockTail** - Schema-aware mock data generation for any database schema (built-in, no external deps!)
 - **SchemaGhost** - Dynamic mock API server with intelligent endpoint generation (built-in, no external deps!)
-- **Database Adapters** - Multi-database support with connection pooling
-- **Migration System** - Automatic schema management
-- **Smart Data Generation** - Context-aware mock data based on your actual schema
-- **API Simulation** - Realistic API responses with configurable delays and error rates
 
 > **Note:** MockTail and SchemaGhost are built directly into MockAuth. No external packages needed!
 
