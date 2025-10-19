@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccountLockoutService = void 0;
 class AccountLockoutService {
@@ -22,119 +13,116 @@ class AccountLockoutService {
     /**
      * Record a failed login attempt
      */
-    recordFailedAttempt(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.config.enableLockout) {
-                return { isLocked: false, attemptsRemaining: this.config.maxAttempts };
+    async recordFailedAttempt(userId) {
+        if (!this.config.enableLockout) {
+            return { isLocked: false, attemptsRemaining: this.config.maxAttempts };
+        }
+        const existingRecord = this.lockoutRecords.get(userId);
+        const now = new Date();
+        if (existingRecord) {
+            // Check if lockout has expired
+            if (existingRecord.lockedUntil && existingRecord.lockedUntil < now) {
+                // Reset the record
+                this.lockoutRecords.delete(userId);
+                return this.recordFailedAttempt(userId);
             }
-            const existingRecord = this.lockoutRecords.get(userId);
-            const now = new Date();
-            if (existingRecord) {
-                // Check if lockout has expired
-                if (existingRecord.lockedUntil && existingRecord.lockedUntil < now) {
-                    // Reset the record
-                    this.lockoutRecords.delete(userId);
-                    return this.recordFailedAttempt(userId);
-                }
-                // Check if already locked
-                if (existingRecord.lockedUntil && existingRecord.lockedUntil > now) {
-                    return {
-                        isLocked: true,
-                        attemptsRemaining: 0,
-                        lockedUntil: existingRecord.lockedUntil,
-                    };
-                }
-                // Increment attempts
-                const newAttempts = existingRecord.attempts + 1;
-                const isLocked = newAttempts >= this.config.maxAttempts;
-                const lockedUntil = isLocked
-                    ? new Date(now.getTime() + this.config.lockoutDuration)
-                    : undefined;
-                const updatedRecord = Object.assign(Object.assign({}, existingRecord), { attempts: newAttempts, lockedAt: isLocked ? now : existingRecord.lockedAt, lockedUntil: lockedUntil || existingRecord.lockedUntil });
-                this.lockoutRecords.set(userId, updatedRecord);
+            // Check if already locked
+            if (existingRecord.lockedUntil && existingRecord.lockedUntil > now) {
                 return {
-                    isLocked,
-                    attemptsRemaining: Math.max(0, this.config.maxAttempts - newAttempts),
-                    lockedUntil,
+                    isLocked: true,
+                    attemptsRemaining: 0,
+                    lockedUntil: existingRecord.lockedUntil,
                 };
             }
-            else {
-                // First failed attempt
-                const newAttempts = 1;
-                const isLocked = newAttempts >= this.config.maxAttempts;
-                const lockedUntil = isLocked
-                    ? new Date(now.getTime() + this.config.lockoutDuration)
-                    : undefined;
-                const newRecord = {
-                    userId,
-                    attempts: newAttempts,
-                    lockedAt: isLocked ? now : now,
-                    lockedUntil: lockedUntil,
-                };
-                this.lockoutRecords.set(userId, newRecord);
-                return {
-                    isLocked,
-                    attemptsRemaining: Math.max(0, this.config.maxAttempts - newAttempts),
-                    lockedUntil,
-                };
-            }
-        });
+            // Increment attempts
+            const newAttempts = existingRecord.attempts + 1;
+            const isLocked = newAttempts >= this.config.maxAttempts;
+            const lockedUntil = isLocked
+                ? new Date(now.getTime() + this.config.lockoutDuration)
+                : undefined;
+            const updatedRecord = {
+                ...existingRecord,
+                attempts: newAttempts,
+                lockedAt: isLocked ? now : existingRecord.lockedAt,
+                lockedUntil: lockedUntil || existingRecord.lockedUntil,
+            };
+            this.lockoutRecords.set(userId, updatedRecord);
+            return {
+                isLocked,
+                attemptsRemaining: Math.max(0, this.config.maxAttempts - newAttempts),
+                lockedUntil,
+            };
+        }
+        else {
+            // First failed attempt
+            const newAttempts = 1;
+            const isLocked = newAttempts >= this.config.maxAttempts;
+            const lockedUntil = isLocked
+                ? new Date(now.getTime() + this.config.lockoutDuration)
+                : undefined;
+            const newRecord = {
+                userId,
+                attempts: newAttempts,
+                lockedAt: isLocked ? now : now,
+                lockedUntil: lockedUntil,
+            };
+            this.lockoutRecords.set(userId, newRecord);
+            return {
+                isLocked,
+                attemptsRemaining: Math.max(0, this.config.maxAttempts - newAttempts),
+                lockedUntil,
+            };
+        }
     }
     /**
      * Clear failed attempts on successful login
      */
-    clearFailedAttempts(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.lockoutRecords.delete(userId);
-        });
+    async clearFailedAttempts(userId) {
+        this.lockoutRecords.delete(userId);
     }
     /**
      * Check if account is locked
      */
-    isAccountLocked(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const record = this.lockoutRecords.get(userId);
-            if (!record) {
-                return { isLocked: false, attempts: 0, lockedUntil: undefined };
-            }
-            const now = new Date();
-            // If no lockedUntil, the account is not locked
-            if (!record.lockedUntil) {
-                return { isLocked: false, attempts: record.attempts, lockedUntil: undefined };
-            }
-            if (record.lockedUntil && record.lockedUntil < now) {
-                // Lockout has expired, clean up
-                this.lockoutRecords.delete(userId);
-                return { isLocked: false, attempts: 0, lockedUntil: undefined };
-            }
-            return {
-                isLocked: true,
-                lockedUntil: record.lockedUntil,
-                attempts: record.attempts,
-            };
-        });
+    async isAccountLocked(userId) {
+        const record = this.lockoutRecords.get(userId);
+        if (!record) {
+            return { isLocked: false, attempts: 0, lockedUntil: undefined };
+        }
+        const now = new Date();
+        // If no lockedUntil, the account is not locked
+        if (!record.lockedUntil) {
+            return { isLocked: false, attempts: record.attempts, lockedUntil: undefined };
+        }
+        if (record.lockedUntil && record.lockedUntil < now) {
+            // Lockout has expired, clean up
+            this.lockoutRecords.delete(userId);
+            return { isLocked: false, attempts: 0, lockedUntil: undefined };
+        }
+        return {
+            isLocked: true,
+            lockedUntil: record.lockedUntil,
+            attempts: record.attempts,
+        };
     }
     /**
      * Unlock an account (admin function)
      */
-    unlockAccount(request, unlockedBy) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { userId, reason } = request;
-            const record = this.lockoutRecords.get(userId);
-            if (!record) {
-                return {
-                    success: false,
-                    message: 'Account is not locked',
-                };
-            }
-            const now = new Date();
-            // Remove the lockout record to unlock the account
-            this.lockoutRecords.delete(userId);
+    async unlockAccount(request, unlockedBy) {
+        const { userId, reason } = request;
+        const record = this.lockoutRecords.get(userId);
+        if (!record) {
             return {
-                success: true,
-                message: 'Account unlocked successfully',
+                success: false,
+                message: 'Account is not locked',
             };
-        });
+        }
+        const now = new Date();
+        // Remove the lockout record to unlock the account
+        this.lockoutRecords.delete(userId);
+        return {
+            success: true,
+            message: 'Account unlocked successfully',
+        };
     }
     /**
      * Get lockout statistics
@@ -175,30 +163,28 @@ class AccountLockoutService {
     /**
      * Clean up expired lockout records
      */
-    cleanupExpiredRecords() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const now = new Date();
-            let cleanedCount = 0;
-            for (const [userId, record] of this.lockoutRecords.entries()) {
-                if (record.lockedUntil && record.lockedUntil < now) {
-                    this.lockoutRecords.delete(userId);
-                    cleanedCount++;
-                }
+    async cleanupExpiredRecords() {
+        const now = new Date();
+        let cleanedCount = 0;
+        for (const [userId, record] of this.lockoutRecords.entries()) {
+            if (record.lockedUntil && record.lockedUntil < now) {
+                this.lockoutRecords.delete(userId);
+                cleanedCount++;
             }
-            return cleanedCount;
-        });
+        }
+        return cleanedCount;
     }
     /**
      * Update lockout configuration
      */
     updateConfig(newConfig) {
-        this.config = Object.assign(Object.assign({}, this.config), newConfig);
+        this.config = { ...this.config, ...newConfig };
     }
     /**
      * Get current configuration
      */
     getConfig() {
-        return Object.assign({}, this.config);
+        return { ...this.config };
     }
 }
 exports.AccountLockoutService = AccountLockoutService;

@@ -15,22 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdvancedMockAuthCLI = void 0;
 const fs = __importStar(require("fs"));
@@ -44,58 +45,56 @@ class AdvancedMockAuthCLI {
             output: process.stdout,
         });
     }
-    run() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const args = this.parseArgs();
-            if (args.help) {
+    async run() {
+        const args = this.parseArgs();
+        if (args.help) {
+            this.showAdvancedHelp();
+            return;
+        }
+        switch (args.command) {
+            case 'init':
+                await this.initProjectAdvanced(args);
+                break;
+            case 'start':
+                await this.startServerAdvanced(args);
+                break;
+            case 'test':
+                await this.runTestsAdvanced(args);
+                break;
+            case 'generate':
+                await this.generateDataAdvanced(args);
+                break;
+            case 'migrate':
+                await this.migrateDatabaseAdvanced(args);
+                break;
+            case 'deploy':
+                await this.deployToCloud(args);
+                break;
+            case 'monitor':
+                await this.startMonitoring(args);
+                break;
+            case 'backup':
+                await this.backupData(args);
+                break;
+            case 'restore':
+                await this.restoreData(args);
+                break;
+            case 'validate':
+                await this.validateConfig(args);
+                break;
+            case 'benchmark':
+                await this.runBenchmarks(args);
+                break;
+            case 'docs':
+                await this.generateDocs(args);
+                break;
+            case 'plugin':
+                await this.managePlugins(args);
+                break;
+            default:
+                console.log(`❌ Unknown command: ${args.command}`);
                 this.showAdvancedHelp();
-                return;
-            }
-            switch (args.command) {
-                case 'init':
-                    yield this.initProjectAdvanced(args);
-                    break;
-                case 'start':
-                    yield this.startServerAdvanced(args);
-                    break;
-                case 'test':
-                    yield this.runTestsAdvanced(args);
-                    break;
-                case 'generate':
-                    yield this.generateDataAdvanced(args);
-                    break;
-                case 'migrate':
-                    yield this.migrateDatabaseAdvanced(args);
-                    break;
-                case 'deploy':
-                    yield this.deployToCloud(args);
-                    break;
-                case 'monitor':
-                    yield this.startMonitoring(args);
-                    break;
-                case 'backup':
-                    yield this.backupData(args);
-                    break;
-                case 'restore':
-                    yield this.restoreData(args);
-                    break;
-                case 'validate':
-                    yield this.validateConfig(args);
-                    break;
-                case 'benchmark':
-                    yield this.runBenchmarks(args);
-                    break;
-                case 'docs':
-                    yield this.generateDocs(args);
-                    break;
-                case 'plugin':
-                    yield this.managePlugins(args);
-                    break;
-                default:
-                    console.log(`❌ Unknown command: ${args.command}`);
-                    this.showAdvancedHelp();
-            }
-        });
+        }
     }
     parseArgs() {
         const args = process.argv.slice(2);
@@ -196,33 +195,30 @@ ADVANCED EXAMPLES:
 For more information, visit: https://github.com/mockilo/mockauth
     `);
     }
-    deployToCloud(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('☁️ Deploying MockAuth to cloud...\n');
-            const platform = yield this.question('Select platform (aws|gcp|azure|docker): ');
-            const environment = options.env || (yield this.question('Environment (dev|staging|prod): '));
-            switch (platform.toLowerCase()) {
-                case 'aws':
-                    yield this.deployToAWS(environment, options);
-                    break;
-                case 'gcp':
-                    yield this.deployToGCP(environment, options);
-                    break;
-                case 'azure':
-                    yield this.deployToAzure(environment, options);
-                    break;
-                case 'docker':
-                    yield this.deployWithDocker(environment, options);
-                    break;
-                default:
-                    console.log('❌ Unsupported platform');
-            }
-        });
+    async deployToCloud(options) {
+        console.log('☁️ Deploying MockAuth to cloud...\n');
+        const platform = await this.question('Select platform (aws|gcp|azure|docker): ');
+        const environment = options.env || (await this.question('Environment (dev|staging|prod): '));
+        switch (platform.toLowerCase()) {
+            case 'aws':
+                await this.deployToAWS(environment, options);
+                break;
+            case 'gcp':
+                await this.deployToGCP(environment, options);
+                break;
+            case 'azure':
+                await this.deployToAzure(environment, options);
+                break;
+            case 'docker':
+                await this.deployWithDocker(environment, options);
+                break;
+            default:
+                console.log('❌ Unsupported platform');
+        }
     }
-    deployToAWS(environment, options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🚀 Deploying to AWS...');
-            const deploymentScript = `#!/bin/bash
+    async deployToAWS(environment, options) {
+        console.log('🚀 Deploying to AWS...');
+        const deploymentScript = `#!/bin/bash
 # AWS Deployment Script for MockAuth
 
 # Set environment variables
@@ -239,15 +235,13 @@ aws cloudformation create-stack \\
 
 echo "✅ MockAuth deployed to AWS: https://mockauth-${environment}.amazonaws.com"
 `;
-            fs.writeFileSync('deploy-aws.sh', deploymentScript);
-            console.log('📝 AWS deployment script created: deploy-aws.sh');
-            console.log('🚀 Run: chmod +x deploy-aws.sh && ./deploy-aws.sh');
-        });
+        fs.writeFileSync('deploy-aws.sh', deploymentScript);
+        console.log('📝 AWS deployment script created: deploy-aws.sh');
+        console.log('🚀 Run: chmod +x deploy-aws.sh && ./deploy-aws.sh');
     }
-    deployToGCP(environment, options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🚀 Deploying to Google Cloud...');
-            const deploymentScript = `#!/bin/bash
+    async deployToGCP(environment, options) {
+        console.log('🚀 Deploying to Google Cloud...');
+        const deploymentScript = `#!/bin/bash
 # GCP Deployment Script for MockAuth
 
 # Set environment variables
@@ -265,15 +259,13 @@ gcloud run deploy mockauth \\
 
 echo "✅ MockAuth deployed to GCP: https://mockauth-${environment}.run.app"
 `;
-            fs.writeFileSync('deploy-gcp.sh', deploymentScript);
-            console.log('📝 GCP deployment script created: deploy-gcp.sh');
-            console.log('🚀 Run: chmod +x deploy-gcp.sh && ./deploy-gcp.sh');
-        });
+        fs.writeFileSync('deploy-gcp.sh', deploymentScript);
+        console.log('📝 GCP deployment script created: deploy-gcp.sh');
+        console.log('🚀 Run: chmod +x deploy-gcp.sh && ./deploy-gcp.sh');
     }
-    deployToAzure(environment, options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🚀 Deploying to Azure...');
-            const deploymentScript = `#!/bin/bash
+    async deployToAzure(environment, options) {
+        console.log('🚀 Deploying to Azure...');
+        const deploymentScript = `#!/bin/bash
 # Azure Deployment Script for MockAuth
 
 # Set environment variables
@@ -292,15 +284,13 @@ az webapp up \\
 
 echo "✅ MockAuth deployed to Azure: https://mockauth-${environment}.azurewebsites.net"
 `;
-            fs.writeFileSync('deploy-azure.sh', deploymentScript);
-            console.log('📝 Azure deployment script created: deploy-azure.sh');
-            console.log('🚀 Run: chmod +x deploy-azure.sh && ./deploy-azure.sh');
-        });
+        fs.writeFileSync('deploy-azure.sh', deploymentScript);
+        console.log('📝 Azure deployment script created: deploy-azure.sh');
+        console.log('🚀 Run: chmod +x deploy-azure.sh && ./deploy-azure.sh');
     }
-    deployWithDocker(environment, options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🐳 Creating Docker deployment...');
-            const dockerfile = `FROM node:18-alpine
+    async deployWithDocker(environment, options) {
+        console.log('🐳 Creating Docker deployment...');
+        const dockerfile = `FROM node:18-alpine
 
 WORKDIR /app
 
@@ -330,7 +320,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
 # Start application
 CMD ["node", "dist/index.js"]
 `;
-            const dockerCompose = `version: '3.8'
+        const dockerCompose = `version: '3.8'
 
 services:
   mockauth:
@@ -361,18 +351,16 @@ services:
 volumes:
   postgres_data:
 `;
-            fs.writeFileSync('Dockerfile', dockerfile);
-            fs.writeFileSync('docker-compose.yml', dockerCompose);
-            console.log('📝 Docker files created:');
-            console.log('   • Dockerfile');
-            console.log('   • docker-compose.yml');
-            console.log('🚀 Run: docker-compose up -d');
-        });
+        fs.writeFileSync('Dockerfile', dockerfile);
+        fs.writeFileSync('docker-compose.yml', dockerCompose);
+        console.log('📝 Docker files created:');
+        console.log('   • Dockerfile');
+        console.log('   • docker-compose.yml');
+        console.log('🚀 Run: docker-compose up -d');
     }
-    startMonitoring(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('📊 Starting MockAuth monitoring dashboard...\n');
-            const monitoringHTML = `<!DOCTYPE html>
+    async startMonitoring(options) {
+        console.log('📊 Starting MockAuth monitoring dashboard...\n');
+        const monitoringHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -512,143 +500,134 @@ volumes:
     </script>
 </body>
 </html>`;
-            const port = options.port || 3003;
-            const express = require('express');
-            const app = express();
-            app.use(express.static('.'));
-            app.get('/', (req, res) => {
-                res.send(monitoringHTML);
-            });
-            app.listen(port, () => {
-                console.log(`📊 Monitoring dashboard running on http://localhost:${port}`);
-                console.log('🔄 Refreshing metrics every 5 seconds');
-            });
+        const port = options.port || 3003;
+        const express = require('express');
+        const app = express();
+        app.use(express.static('.'));
+        app.get('/', (req, res) => {
+            res.send(monitoringHTML);
+        });
+        app.listen(port, () => {
+            console.log(`📊 Monitoring dashboard running on http://localhost:${port}`);
+            console.log('🔄 Refreshing metrics every 5 seconds');
         });
     }
-    backupData(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('💾 Creating MockAuth backup...\n');
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const backupDir = `./backups/backup-${timestamp}`;
-            if (!fs.existsSync('./backups')) {
-                fs.mkdirSync('./backups', { recursive: true });
-            }
-            fs.mkdirSync(backupDir, { recursive: true });
-            // Backup configuration
-            if (fs.existsSync('mockauth.config.js')) {
-                fs.copyFileSync('mockauth.config.js', path.join(backupDir, 'config.js'));
-            }
-            // Backup database
-            if (fs.existsSync('mockauth.db')) {
-                fs.copyFileSync('mockauth.db', path.join(backupDir, 'database.db'));
-            }
-            // Backup mock data
-            if (fs.existsSync('./mock-data')) {
-                this.copyDirectory('./mock-data', path.join(backupDir, 'mock-data'));
-            }
-            // Create backup manifest
-            const manifest = {
-                timestamp: new Date().toISOString(),
-                version: '1.0.0',
-                files: fs.readdirSync(backupDir),
-                size: this.getDirectorySize(backupDir),
-            };
-            fs.writeFileSync(path.join(backupDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
-            console.log(`✅ Backup created: ${backupDir}`);
-            console.log(`📁 Files backed up: ${manifest.files.length}`);
-            console.log(`💾 Backup size: ${(manifest.size / 1024).toFixed(2)} KB`);
-        });
+    async backupData(options) {
+        console.log('💾 Creating MockAuth backup...\n');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupDir = `./backups/backup-${timestamp}`;
+        if (!fs.existsSync('./backups')) {
+            fs.mkdirSync('./backups', { recursive: true });
+        }
+        fs.mkdirSync(backupDir, { recursive: true });
+        // Backup configuration
+        if (fs.existsSync('mockauth.config.js')) {
+            fs.copyFileSync('mockauth.config.js', path.join(backupDir, 'config.js'));
+        }
+        // Backup database
+        if (fs.existsSync('mockauth.db')) {
+            fs.copyFileSync('mockauth.db', path.join(backupDir, 'database.db'));
+        }
+        // Backup mock data
+        if (fs.existsSync('./mock-data')) {
+            this.copyDirectory('./mock-data', path.join(backupDir, 'mock-data'));
+        }
+        // Create backup manifest
+        const manifest = {
+            timestamp: new Date().toISOString(),
+            version: '1.0.0',
+            files: fs.readdirSync(backupDir),
+            size: this.getDirectorySize(backupDir),
+        };
+        fs.writeFileSync(path.join(backupDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+        console.log(`✅ Backup created: ${backupDir}`);
+        console.log(`📁 Files backed up: ${manifest.files.length}`);
+        console.log(`💾 Backup size: ${(manifest.size / 1024).toFixed(2)} KB`);
     }
-    restoreData(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔄 Restoring MockAuth from backup...\n');
-            const backups = fs
-                .readdirSync('./backups')
-                .filter((dir) => dir.startsWith('backup-'));
-            if (backups.length === 0) {
-                console.log('❌ No backups found');
-                return;
-            }
-            console.log('Available backups:');
-            backups.forEach((backup, index) => {
-                console.log(`  ${index + 1}. ${backup}`);
-            });
-            const choice = yield this.question('Select backup to restore (number): ');
-            const selectedBackup = backups[parseInt(choice) - 1];
-            if (!selectedBackup) {
-                console.log('❌ Invalid selection');
-                return;
-            }
-            const backupPath = path.join('./backups', selectedBackup);
-            const manifest = JSON.parse(fs.readFileSync(path.join(backupPath, 'manifest.json'), 'utf8'));
-            console.log(`🔄 Restoring from: ${selectedBackup}`);
-            console.log(`📅 Backup date: ${manifest.timestamp}`);
-            // Restore files
-            if (fs.existsSync(path.join(backupPath, 'config.js'))) {
-                fs.copyFileSync(path.join(backupPath, 'config.js'), 'mockauth.config.js');
-                console.log('✅ Configuration restored');
-            }
-            if (fs.existsSync(path.join(backupPath, 'database.db'))) {
-                fs.copyFileSync(path.join(backupPath, 'database.db'), 'mockauth.db');
-                console.log('✅ Database restored');
-            }
-            if (fs.existsSync(path.join(backupPath, 'mock-data'))) {
-                this.copyDirectory(path.join(backupPath, 'mock-data'), './mock-data');
-                console.log('✅ Mock data restored');
-            }
-            console.log('🎉 Restore completed successfully!');
+    async restoreData(options) {
+        console.log('🔄 Restoring MockAuth from backup...\n');
+        const backups = fs
+            .readdirSync('./backups')
+            .filter((dir) => dir.startsWith('backup-'));
+        if (backups.length === 0) {
+            console.log('❌ No backups found');
+            return;
+        }
+        console.log('Available backups:');
+        backups.forEach((backup, index) => {
+            console.log(`  ${index + 1}. ${backup}`);
         });
+        const choice = await this.question('Select backup to restore (number): ');
+        const selectedBackup = backups[parseInt(choice) - 1];
+        if (!selectedBackup) {
+            console.log('❌ Invalid selection');
+            return;
+        }
+        const backupPath = path.join('./backups', selectedBackup);
+        const manifest = JSON.parse(fs.readFileSync(path.join(backupPath, 'manifest.json'), 'utf8'));
+        console.log(`🔄 Restoring from: ${selectedBackup}`);
+        console.log(`📅 Backup date: ${manifest.timestamp}`);
+        // Restore files
+        if (fs.existsSync(path.join(backupPath, 'config.js'))) {
+            fs.copyFileSync(path.join(backupPath, 'config.js'), 'mockauth.config.js');
+            console.log('✅ Configuration restored');
+        }
+        if (fs.existsSync(path.join(backupPath, 'database.db'))) {
+            fs.copyFileSync(path.join(backupPath, 'database.db'), 'mockauth.db');
+            console.log('✅ Database restored');
+        }
+        if (fs.existsSync(path.join(backupPath, 'mock-data'))) {
+            this.copyDirectory(path.join(backupPath, 'mock-data'), './mock-data');
+            console.log('✅ Mock data restored');
+        }
+        console.log('🎉 Restore completed successfully!');
     }
-    validateConfig(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
-            console.log('✅ Validating MockAuth configuration...\n');
-            const configPath = options.config || 'mockauth.config.js';
-            if (!fs.existsSync(configPath)) {
-                console.log('❌ Configuration file not found');
-                return;
+    async validateConfig(options) {
+        console.log('✅ Validating MockAuth configuration...\n');
+        const configPath = options.config || 'mockauth.config.js';
+        if (!fs.existsSync(configPath)) {
+            console.log('❌ Configuration file not found');
+            return;
+        }
+        try {
+            const config = require(path.resolve(configPath));
+            // Validate required fields
+            const errors = [];
+            if (!config.port || config.port < 1000 || config.port > 65535) {
+                errors.push('Port must be between 1000 and 65535');
             }
-            try {
-                const config = require(path.resolve(configPath));
-                // Validate required fields
-                const errors = [];
-                if (!config.port || config.port < 1000 || config.port > 65535) {
-                    errors.push('Port must be between 1000 and 65535');
-                }
-                if (!config.baseUrl || !config.baseUrl.startsWith('http')) {
-                    errors.push('Base URL must be a valid HTTP URL');
-                }
-                // FIXED: Updated to match actual validation requirement (32 chars)
-                if (!config.jwtSecret || config.jwtSecret.length < 32) {
-                    errors.push(`JWT Secret must be at least 32 characters (current: ${((_a = config.jwtSecret) === null || _a === void 0 ? void 0 : _a.length) || 0})`);
-                }
-                if (config.database && config.database.type !== 'memory') {
-                    if (!config.database.connectionString) {
-                        errors.push('Database connection string required for non-memory databases');
-                    }
-                }
-                if (errors.length > 0) {
-                    console.log('❌ Configuration validation failed:');
-                    errors.forEach((error) => console.log(`   • ${error}`));
-                }
-                else {
-                    console.log('✅ Configuration is valid');
-                    console.log(`📊 Port: ${config.port}`);
-                    console.log(`🌐 Base URL: ${config.baseUrl}`);
-                    console.log(`🗄️ Database: ${((_b = config.database) === null || _b === void 0 ? void 0 : _b.type) || 'memory'}`);
-                    console.log(`🔐 MFA Enabled: ${config.enableMFA ? 'Yes' : 'No'}`);
-                    console.log(`🎭 Ecosystem: ${config.ecosystem ? 'Enabled' : 'Disabled'}`);
+            if (!config.baseUrl || !config.baseUrl.startsWith('http')) {
+                errors.push('Base URL must be a valid HTTP URL');
+            }
+            // FIXED: Updated to match actual validation requirement (32 chars)
+            if (!config.jwtSecret || config.jwtSecret.length < 32) {
+                errors.push(`JWT Secret must be at least 32 characters (current: ${config.jwtSecret?.length || 0})`);
+            }
+            if (config.database && config.database.type !== 'memory') {
+                if (!config.database.connectionString) {
+                    errors.push('Database connection string required for non-memory databases');
                 }
             }
-            catch (error) {
-                console.log('❌ Failed to load configuration:', error.message);
+            if (errors.length > 0) {
+                console.log('❌ Configuration validation failed:');
+                errors.forEach((error) => console.log(`   • ${error}`));
             }
-        });
+            else {
+                console.log('✅ Configuration is valid');
+                console.log(`📊 Port: ${config.port}`);
+                console.log(`🌐 Base URL: ${config.baseUrl}`);
+                console.log(`🗄️ Database: ${config.database?.type || 'memory'}`);
+                console.log(`🔐 MFA Enabled: ${config.enableMFA ? 'Yes' : 'No'}`);
+                console.log(`🎭 Ecosystem: ${config.ecosystem ? 'Enabled' : 'Disabled'}`);
+            }
+        }
+        catch (error) {
+            console.log('❌ Failed to load configuration:', error.message);
+        }
     }
-    runBenchmarks(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('⚡ Running MockAuth performance benchmarks...\n');
-            const benchmarkScript = `
+    async runBenchmarks(options) {
+        console.log('⚡ Running MockAuth performance benchmarks...\n');
+        const benchmarkScript = `
 const { MockAuth } = require('./dist/index.js');
 const { performance } = require('perf_hooks');
 
@@ -701,19 +680,17 @@ async function runBenchmarks() {
 
 runBenchmarks().catch(console.error);
 `;
-            fs.writeFileSync('benchmark.js', benchmarkScript);
-            console.log('📝 Benchmark script created: benchmark.js');
-            console.log('🚀 Run: node benchmark.js');
-        });
+        fs.writeFileSync('benchmark.js', benchmarkScript);
+        console.log('📝 Benchmark script created: benchmark.js');
+        console.log('🚀 Run: node benchmark.js');
     }
-    generateDocs(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('📚 Generating MockAuth API documentation...\n');
-            const outputDir = options.output || './docs';
-            if (!fs.existsSync(outputDir)) {
-                fs.mkdirSync(outputDir, { recursive: true });
-            }
-            const apiDocs = `# MockAuth API Documentation
+    async generateDocs(options) {
+        console.log('📚 Generating MockAuth API documentation...\n');
+        const outputDir = options.output || './docs';
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+        const apiDocs = `# MockAuth API Documentation
 
 ## Overview
 MockAuth is a developer-first authentication simulator for development, testing, and staging environments.
@@ -782,83 +759,70 @@ curl -H "Authorization: Bearer <token>" \\
   http://localhost:3001/users
 \`\`\`
 `;
-            fs.writeFileSync(path.join(outputDir, 'api.md'), apiDocs);
-            console.log(`✅ API documentation generated: ${outputDir}/api.md`);
-            console.log('📖 Open the file in your markdown viewer');
-        });
+        fs.writeFileSync(path.join(outputDir, 'api.md'), apiDocs);
+        console.log(`✅ API documentation generated: ${outputDir}/api.md`);
+        console.log('📖 Open the file in your markdown viewer');
     }
-    managePlugins(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔌 MockAuth Plugin Manager\n');
-            const action = yield this.question('Action (install|remove|list|update): ');
-            switch (action.toLowerCase()) {
-                case 'install':
-                    yield this.installPlugin();
-                    break;
-                case 'remove':
-                    yield this.removePlugin();
-                    break;
-                case 'list':
-                    yield this.listPlugins();
-                    break;
-                case 'update':
-                    yield this.updatePlugins();
-                    break;
-                default:
-                    console.log('❌ Invalid action');
-            }
-        });
+    async managePlugins(options) {
+        console.log('🔌 MockAuth Plugin Manager\n');
+        const action = await this.question('Action (install|remove|list|update): ');
+        switch (action.toLowerCase()) {
+            case 'install':
+                await this.installPlugin();
+                break;
+            case 'remove':
+                await this.removePlugin();
+                break;
+            case 'list':
+                await this.listPlugins();
+                break;
+            case 'update':
+                await this.updatePlugins();
+                break;
+            default:
+                console.log('❌ Invalid action');
+        }
     }
-    installPlugin() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const pluginName = yield this.question('Plugin name: ');
-            const availablePlugins = {
-                'oauth-provider': 'OAuth 2.0 provider integration',
-                'ldap-auth': 'LDAP authentication support',
-                'saml-sso': 'SAML SSO integration',
-                'rate-limiter': 'Advanced rate limiting',
-                'audit-logger': 'Enhanced audit logging',
-                'webhook-manager': 'Webhook management system',
-            };
-            if (availablePlugins[pluginName]) {
-                console.log(`📦 Installing plugin: ${pluginName}`);
-                console.log(`📝 Description: ${availablePlugins[pluginName]}`);
-                console.log('✅ Plugin installed successfully');
-            }
-            else {
-                console.log('❌ Plugin not found');
-                console.log('Available plugins:', Object.keys(availablePlugins).join(', '));
-            }
-        });
+    async installPlugin() {
+        const pluginName = await this.question('Plugin name: ');
+        const availablePlugins = {
+            'oauth-provider': 'OAuth 2.0 provider integration',
+            'ldap-auth': 'LDAP authentication support',
+            'saml-sso': 'SAML SSO integration',
+            'rate-limiter': 'Advanced rate limiting',
+            'audit-logger': 'Enhanced audit logging',
+            'webhook-manager': 'Webhook management system',
+        };
+        if (availablePlugins[pluginName]) {
+            console.log(`📦 Installing plugin: ${pluginName}`);
+            console.log(`📝 Description: ${availablePlugins[pluginName]}`);
+            console.log('✅ Plugin installed successfully');
+        }
+        else {
+            console.log('❌ Plugin not found');
+            console.log('Available plugins:', Object.keys(availablePlugins).join(', '));
+        }
     }
-    removePlugin() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const pluginName = yield this.question('Plugin name to remove: ');
-            console.log(`🗑️ Removing plugin: ${pluginName}`);
-            console.log('✅ Plugin removed successfully');
-        });
+    async removePlugin() {
+        const pluginName = await this.question('Plugin name to remove: ');
+        console.log(`🗑️ Removing plugin: ${pluginName}`);
+        console.log('✅ Plugin removed successfully');
     }
-    listPlugins() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('📋 Installed plugins:');
-            console.log('   • oauth-provider (v1.0.0)');
-            console.log('   • rate-limiter (v2.1.0)');
-            console.log('   • audit-logger (v1.5.0)');
-        });
+    async listPlugins() {
+        console.log('📋 Installed plugins:');
+        console.log('   • oauth-provider (v1.0.0)');
+        console.log('   • rate-limiter (v2.1.0)');
+        console.log('   • audit-logger (v1.5.0)');
     }
-    updatePlugins() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔄 Updating all plugins...');
-            console.log('✅ All plugins updated to latest versions');
-        });
+    async updatePlugins() {
+        console.log('🔄 Updating all plugins...');
+        console.log('✅ All plugins updated to latest versions');
     }
     // Helper methods
-    question(prompt) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                this.rl.question(prompt, (answer) => {
-                    resolve(answer.trim());
-                });
+    async question(prompt) {
+        return new Promise((resolve) => {
+            this.rl.question(prompt, (answer) => {
+                resolve(answer.trim());
             });
         });
     }
@@ -899,35 +863,25 @@ curl -H "Authorization: Bearer <token>" \\
         return size;
     }
     // Basic CLI methods (delegated from main CLI)
-    initProjectAdvanced(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎯 Advanced project initialization...');
-            // Implementation for advanced init
-        });
+    async initProjectAdvanced(options) {
+        console.log('🎯 Advanced project initialization...');
+        // Implementation for advanced init
     }
-    startServerAdvanced(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🚀 Starting advanced server...');
-            // Implementation for advanced start
-        });
+    async startServerAdvanced(options) {
+        console.log('🚀 Starting advanced server...');
+        // Implementation for advanced start
     }
-    runTestsAdvanced(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🧪 Running advanced tests...');
-            // Implementation for advanced tests
-        });
+    async runTestsAdvanced(options) {
+        console.log('🧪 Running advanced tests...');
+        // Implementation for advanced tests
     }
-    generateDataAdvanced(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎭 Advanced data generation...');
-            // Implementation for advanced generation
-        });
+    async generateDataAdvanced(options) {
+        console.log('🎭 Advanced data generation...');
+        // Implementation for advanced generation
     }
-    migrateDatabaseAdvanced(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🗄️ Advanced database migration...');
-            // Implementation for advanced migration
-        });
+    async migrateDatabaseAdvanced(options) {
+        console.log('🗄️ Advanced database migration...');
+        // Implementation for advanced migration
     }
     close() {
         this.rl.close();

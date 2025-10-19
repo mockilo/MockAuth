@@ -15,24 +15,26 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMFAService = exports.MFAService = void 0;
+exports.MFAService = void 0;
+exports.createMFAService = createMFAService;
 const speakeasy = __importStar(require("speakeasy"));
 const QRCode = __importStar(require("qrcode"));
 class MFAService {
@@ -52,17 +54,15 @@ class MFAService {
         return secret.base32;
     }
     // Static method for tests
-    static generateQRCodeData(secret, email) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const otpauthUrl = `otpauth://totp/MockAuth:${email}?secret=${secret}&issuer=MockAuth`;
-            try {
-                const qrCodeDataURL = yield QRCode.toDataURL(otpauthUrl);
-                return qrCodeDataURL;
-            }
-            catch (error) {
-                throw new Error(`Failed to generate QR code: ${error.message}`);
-            }
-        });
+    static async generateQRCodeData(secret, email) {
+        const otpauthUrl = `otpauth://totp/MockAuth:${email}?secret=${secret}&issuer=MockAuth`;
+        try {
+            const qrCodeDataURL = await QRCode.toDataURL(otpauthUrl);
+            return qrCodeDataURL;
+        }
+        catch (error) {
+            throw new Error(`Failed to generate QR code: ${error.message}`);
+        }
     }
     generateSecret(user) {
         const secret = speakeasy.generateSecret({
@@ -75,17 +75,15 @@ class MFAService {
             qrCode: secret.otpauth_url || '',
         };
     }
-    generateQRCode(secret, user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const otpauthUrl = `otpauth://totp/MockAuth:${user.email}?secret=${secret}&issuer=MockAuth`;
-            try {
-                const qrCodeDataURL = yield QRCode.toDataURL(otpauthUrl);
-                return qrCodeDataURL;
-            }
-            catch (error) {
-                throw new Error(`Failed to generate QR code: ${error.message}`);
-            }
-        });
+    async generateQRCode(secret, user) {
+        const otpauthUrl = `otpauth://totp/MockAuth:${user.email}?secret=${secret}&issuer=MockAuth`;
+        try {
+            const qrCodeDataURL = await QRCode.toDataURL(otpauthUrl);
+            return qrCodeDataURL;
+        }
+        catch (error) {
+            throw new Error(`Failed to generate QR code: ${error.message}`);
+        }
     }
     verifyToken(secret, token) {
         return speakeasy.totp.verify({
@@ -124,7 +122,7 @@ class MFAService {
         const instance = MFAService.getInstance();
         const secret = instance.generateSecret(user);
         const backupCodes = instance.generateBackupCodes();
-        return Object.assign(Object.assign({}, secret), { backupCodes });
+        return { ...secret, backupCodes };
     }
     static createMFAConfig(user) {
         return MFAService.setupMFA(user);
@@ -141,12 +139,10 @@ class MFAService {
         return undefined;
     }
     static isMFAEnabled(user) {
-        var _a;
-        return ((_a = user.mfa) === null || _a === void 0 ? void 0 : _a.enabled) || false;
+        return user.mfa?.enabled || false;
     }
     static getRemainingBackupCodes(user) {
-        var _a, _b;
-        return ((_b = (_a = user.mfa) === null || _a === void 0 ? void 0 : _a.backupCodes) === null || _b === void 0 ? void 0 : _b.length) || 0;
+        return user.mfa?.backupCodes?.length || 0;
     }
     static generateBackupCodes() {
         return MFAService.getInstance().generateBackupCodes();
@@ -156,5 +152,4 @@ exports.MFAService = MFAService;
 function createMFAService() {
     return MFAService.getInstance();
 }
-exports.createMFAService = createMFAService;
 //# sourceMappingURL=MFAService.js.map

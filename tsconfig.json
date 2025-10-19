@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
@@ -36,10 +37,17 @@
       "@/middleware/*": ["middleware/*"],
       "@/routes/*": ["routes/*"],
       "@/services/*": ["services/*"]
-    }
+    },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowJs": true,
+    "checkJs": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
@@ -48,6 +56,11 @@
     "examples",
     "src/components/**/*",
     "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+    "**/*.spec.ts",
+    "dist/**/*"
+  ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }

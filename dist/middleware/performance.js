@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorTrackingMiddleware = exports.performanceMiddleware = exports.performanceMonitor = void 0;
+exports.performanceMonitor = void 0;
+exports.performanceMiddleware = performanceMiddleware;
+exports.errorTrackingMiddleware = errorTrackingMiddleware;
 class PerformanceMonitor {
     constructor() {
         this.requestTimes = new Map();
@@ -65,7 +67,7 @@ class PerformanceMonitor {
             this.metrics.totalErrors / this.metrics.requestCount;
     }
     getMetrics() {
-        return Object.assign({}, this.metrics);
+        return { ...this.metrics };
     }
     resetMetrics() {
         this.metrics = {
@@ -88,7 +90,6 @@ function performanceMiddleware(req, res, next) {
     };
     next();
 }
-exports.performanceMiddleware = performanceMiddleware;
 function errorTrackingMiddleware(req, res, next) {
     const originalSend = res.send;
     res.send = function (data) {
@@ -99,5 +100,4 @@ function errorTrackingMiddleware(req, res, next) {
     };
     next();
 }
-exports.errorTrackingMiddleware = errorTrackingMiddleware;
 //# sourceMappingURL=performance.js.map

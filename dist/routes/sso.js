@@ -1,15 +1,6 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSSORoutes = void 0;
+exports.createSSORoutes = createSSORoutes;
 const express_1 = require("express");
 function createSSORoutes(ssoService) {
     const router = (0, express_1.Router)();
@@ -61,7 +52,7 @@ function createSSORoutes(ssoService) {
     /**
      * Handle SSO callback
      */
-    router.post('/callback/:provider', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/callback/:provider', async (req, res) => {
         try {
             const { provider } = req.params;
             const { code, state } = req.body;
@@ -71,7 +62,7 @@ function createSSORoutes(ssoService) {
                     error: 'Missing code or state parameter',
                 });
             }
-            const result = yield ssoService.handleCallback(provider, code, state);
+            const result = await ssoService.handleCallback(provider, code, state);
             res.json({
                 success: true,
                 data: {
@@ -87,7 +78,7 @@ function createSSORoutes(ssoService) {
                 error: error.message,
             });
         }
-    }));
+    });
     /**
      * Validate SSO token
      */
@@ -141,5 +132,4 @@ function createSSORoutes(ssoService) {
     });
     return router;
 }
-exports.createSSORoutes = createSSORoutes;
 //# sourceMappingURL=sso.js.map

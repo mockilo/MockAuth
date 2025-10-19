@@ -1,18 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSchemaGhostService = exports.SchemaGhostService = void 0;
+exports.SchemaGhostService = void 0;
+exports.createSchemaGhostService = createSchemaGhostService;
 const express_1 = __importDefault(require("express"));
 class SchemaGhostService {
     constructor(config) {
@@ -77,11 +69,11 @@ class SchemaGhostService {
     addEndpoint(endpoint) {
         const key = `${endpoint.method}:${endpoint.path}`;
         this.endpoints.set(key, endpoint);
-        const handler = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        const handler = async (req, res) => {
             try {
                 // Apply delay if configured
                 if (endpoint.delay && endpoint.delay > 0) {
-                    yield new Promise((resolve) => setTimeout(resolve, endpoint.delay));
+                    await new Promise((resolve) => setTimeout(resolve, endpoint.delay));
                 }
                 // Apply error rate if configured
                 if (endpoint.errorRate && Math.random() < endpoint.errorRate) {
@@ -108,7 +100,7 @@ class SchemaGhostService {
                     timestamp: new Date().toISOString(),
                 });
             }
-        });
+        };
         // Register the endpoint
         switch (endpoint.method.toUpperCase()) {
             case 'GET':
@@ -138,7 +130,7 @@ class SchemaGhostService {
         const key = `${method.toUpperCase()}:${path}`;
         const existing = this.endpoints.get(key);
         if (existing) {
-            const updated = Object.assign(Object.assign({}, existing), updates);
+            const updated = { ...existing, ...updates };
             this.endpoints.set(key, updated);
             console.log(`👻 Updated endpoint: ${method} ${path}`);
         }
@@ -226,53 +218,48 @@ class SchemaGhostService {
             this.addEndpoint(endpoint);
         });
     }
-    start() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve, reject) => {
-                const port = this.config.port || 3002;
-                this.server = this.app.listen(port, () => {
-                    console.log(`👻 SchemaGhost server running on http://localhost:${port}`);
-                    console.log(`📚 API Documentation: http://localhost:${port}/api`);
-                    console.log(`❤️  Health Check: http://localhost:${port}/health`);
-                    resolve();
-                });
-                this.server.on('error', (error) => {
-                    if (error.code === 'EADDRINUSE') {
-                        console.error(`❌ Port ${port} is already in use`);
-                    }
-                    else {
-                        console.error('❌ SchemaGhost server error:', error.message);
-                    }
-                    reject(error);
-                });
+    async start() {
+        return new Promise((resolve, reject) => {
+            const port = this.config.port || 3002;
+            this.server = this.app.listen(port, () => {
+                console.log(`👻 SchemaGhost server running on http://localhost:${port}`);
+                console.log(`📚 API Documentation: http://localhost:${port}/api`);
+                console.log(`❤️  Health Check: http://localhost:${port}/health`);
+                resolve();
+            });
+            this.server.on('error', (error) => {
+                if (error.code === 'EADDRINUSE') {
+                    console.error(`❌ Port ${port} is already in use`);
+                }
+                else {
+                    console.error('❌ SchemaGhost server error:', error.message);
+                }
+                reject(error);
             });
         });
     }
-    stop() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                if (this.server) {
-                    this.server.close(() => {
-                        console.log('👻 SchemaGhost server stopped');
-                        resolve();
-                    });
-                }
-                else {
+    async stop() {
+        return new Promise((resolve) => {
+            if (this.server) {
+                this.server.close(() => {
+                    console.log('👻 SchemaGhost server stopped');
                     resolve();
-                }
-            });
+                });
+            }
+            else {
+                resolve();
+            }
         });
     }
     getEndpoints() {
         return Array.from(this.endpoints.values());
     }
     getConfig() {
-        return Object.assign({}, this.config);
+        return { ...this.config };
     }
 }
 exports.SchemaGhostService = SchemaGhostService;
 function createSchemaGhostService(config) {
     return new SchemaGhostService(config);
 }
-exports.createSchemaGhostService = createSchemaGhostService;
 //# sourceMappingURL=SchemaGhostService.js.map

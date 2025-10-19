@@ -900,7 +900,7 @@ export class SimpleEnhancedCLI {
       },
     ]);
 
-    const outputPath = './src/auth';
+    const outputPath = './dist/auth';
 
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath, { recursive: true });
@@ -1104,7 +1104,7 @@ export const authService = {
     // Start the web builder
     const builder = spawn(
       'node',
-      ['src/web-builder/server.js', '--port', port.toString()],
+      ['dist/web-builder/server.js', '--port', port.toString()],
       {
         stdio: 'inherit',
       }

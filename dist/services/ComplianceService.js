@@ -1,15 +1,7 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createComplianceService = exports.ComplianceService = void 0;
+exports.ComplianceService = void 0;
+exports.createComplianceService = createComplianceService;
 class ComplianceService {
     constructor(config) {
         this.rules = new Map();
@@ -22,80 +14,73 @@ class ComplianceService {
     /**
      * Log an audit event
      */
-    logAuditEvent(userId, action, resource, success, details, ipAddress, userAgent) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.config.enableAuditLogging) {
-                return;
-            }
-            const auditLog = {
-                id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                userId,
-                action,
-                resource,
-                timestamp: new Date(),
-                ipAddress,
-                userAgent,
-                success,
-                details,
-                complianceFlags: [],
-            };
-            // Check for compliance violations
-            const flags = yield this.checkComplianceViolations(auditLog);
-            auditLog.complianceFlags = flags;
-            this.auditLogs.push(auditLog);
-            // Clean up old audit logs
-            this.cleanupOldAuditLogs();
-        });
+    async logAuditEvent(userId, action, resource, success, details, ipAddress, userAgent) {
+        if (!this.config.enableAuditLogging) {
+            return;
+        }
+        const auditLog = {
+            id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            userId,
+            action,
+            resource,
+            timestamp: new Date(),
+            ipAddress,
+            userAgent,
+            success,
+            details,
+            complianceFlags: [],
+        };
+        // Check for compliance violations
+        const flags = await this.checkComplianceViolations(auditLog);
+        auditLog.complianceFlags = flags;
+        this.auditLogs.push(auditLog);
+        // Clean up old audit logs
+        this.cleanupOldAuditLogs();
     }
     /**
      * Check for compliance violations
      */
-    checkComplianceViolations(auditLog) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const flags = [];
-            for (const rule of this.rules.values()) {
-                if (!rule.enabled)
-                    continue;
-                const violation = yield this.evaluateRule(rule, auditLog);
-                if (violation) {
-                    this.violations.set(violation.id, violation);
-                    flags.push(rule.id);
-                }
+    async checkComplianceViolations(auditLog) {
+        const flags = [];
+        for (const rule of this.rules.values()) {
+            if (!rule.enabled)
+                continue;
+            const violation = await this.evaluateRule(rule, auditLog);
+            if (violation) {
+                this.violations.set(violation.id, violation);
+                flags.push(rule.id);
             }
-            return flags;
-        });
+        }
+        return flags;
     }
     /**
      * Evaluate a compliance rule
      */
-    evaluateRule(rule, auditLog) {
-        return __awaiter(this, void 0, void 0, function* () {
-            switch (rule.type) {
-                case 'password_policy':
-                    return this.evaluatePasswordPolicy(rule, auditLog);
-                case 'session_timeout':
-                    return this.evaluateSessionTimeout(rule, auditLog);
-                case 'audit_retention':
-                    return this.evaluateAuditRetention(rule, auditLog);
-                case 'data_encryption':
-                    return this.evaluateDataEncryption(rule, auditLog);
-                case 'access_control':
-                    return this.evaluateAccessControl(rule, auditLog);
-                default:
-                    return null;
-            }
-        });
+    async evaluateRule(rule, auditLog) {
+        switch (rule.type) {
+            case 'password_policy':
+                return this.evaluatePasswordPolicy(rule, auditLog);
+            case 'session_timeout':
+                return this.evaluateSessionTimeout(rule, auditLog);
+            case 'audit_retention':
+                return this.evaluateAuditRetention(rule, auditLog);
+            case 'data_encryption':
+                return this.evaluateDataEncryption(rule, auditLog);
+            case 'access_control':
+                return this.evaluateAccessControl(rule, auditLog);
+            default:
+                return null;
+        }
     }
     /**
      * Evaluate password policy compliance
      */
     evaluatePasswordPolicy(rule, auditLog) {
-        var _a;
         if (auditLog.action !== 'password_change' &&
             auditLog.action !== 'user_registration') {
             return null;
         }
-        const password = (_a = auditLog.details) === null || _a === void 0 ? void 0 : _a.password;
+        const password = auditLog.details?.password;
         if (!password)
             return null;
         const config = rule.config;
@@ -137,11 +122,10 @@ class ComplianceService {
      * Evaluate session timeout compliance
      */
     evaluateSessionTimeout(rule, auditLog) {
-        var _a;
         if (auditLog.action !== 'session_timeout') {
             return null;
         }
-        const sessionDuration = (_a = auditLog.details) === null || _a === void 0 ? void 0 : _a.sessionDuration;
+        const sessionDuration = auditLog.details?.sessionDuration;
         const maxDuration = rule.config.maxDuration; // in minutes
         if (sessionDuration && sessionDuration > maxDuration) {
             return {
@@ -182,12 +166,11 @@ class ComplianceService {
      * Evaluate data encryption compliance
      */
     evaluateDataEncryption(rule, auditLog) {
-        var _a;
         if (auditLog.action !== 'data_access' &&
             auditLog.action !== 'data_storage') {
             return null;
         }
-        const isEncrypted = (_a = auditLog.details) === null || _a === void 0 ? void 0 : _a.encrypted;
+        const isEncrypted = auditLog.details?.encrypted;
         const requiresEncryption = rule.config.requireEncryption;
         if (requiresEncryption && !isEncrypted) {
             return {
@@ -241,34 +224,32 @@ class ComplianceService {
     /**
      * Generate compliance report
      */
-    generateComplianceReport(type, startDate, endDate) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const reportId = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const periodViolations = Array.from(this.violations.values()).filter((v) => v.timestamp >= startDate && v.timestamp <= endDate);
-            const summary = {
-                totalViolations: periodViolations.length,
-                criticalViolations: periodViolations.filter((v) => v.severity === 'critical').length,
-                highViolations: periodViolations.filter((v) => v.severity === 'high')
-                    .length,
-                mediumViolations: periodViolations.filter((v) => v.severity === 'medium')
-                    .length,
-                lowViolations: periodViolations.filter((v) => v.severity === 'low')
-                    .length,
-            };
-            const recommendations = this.generateRecommendations(periodViolations);
-            const report = {
-                id: reportId,
-                name: `${type.charAt(0).toUpperCase() + type.slice(1)} Compliance Report`,
-                type,
-                generatedAt: new Date(),
-                period: { start: startDate, end: endDate },
-                summary,
-                violations: periodViolations,
-                recommendations,
-            };
-            this.reports.set(reportId, report);
-            return report;
-        });
+    async generateComplianceReport(type, startDate, endDate) {
+        const reportId = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const periodViolations = Array.from(this.violations.values()).filter((v) => v.timestamp >= startDate && v.timestamp <= endDate);
+        const summary = {
+            totalViolations: periodViolations.length,
+            criticalViolations: periodViolations.filter((v) => v.severity === 'critical').length,
+            highViolations: periodViolations.filter((v) => v.severity === 'high')
+                .length,
+            mediumViolations: periodViolations.filter((v) => v.severity === 'medium')
+                .length,
+            lowViolations: periodViolations.filter((v) => v.severity === 'low')
+                .length,
+        };
+        const recommendations = this.generateRecommendations(periodViolations);
+        const report = {
+            id: reportId,
+            name: `${type.charAt(0).toUpperCase() + type.slice(1)} Compliance Report`,
+            type,
+            generatedAt: new Date(),
+            period: { start: startDate, end: endDate },
+            summary,
+            violations: periodViolations,
+            recommendations,
+        };
+        this.reports.set(reportId, report);
+        return report;
     }
     /**
      * Generate compliance recommendations
@@ -300,24 +281,22 @@ class ComplianceService {
     /**
      * Resolve a compliance violation
      */
-    resolveViolation(violationId, resolvedBy) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const violation = this.violations.get(violationId);
-            if (!violation) {
-                return false;
-            }
-            violation.resolved = true;
-            violation.resolvedAt = new Date();
-            violation.resolvedBy = resolvedBy;
-            return true;
-        });
+    async resolveViolation(violationId, resolvedBy) {
+        const violation = this.violations.get(violationId);
+        if (!violation) {
+            return false;
+        }
+        violation.resolved = true;
+        violation.resolvedAt = new Date();
+        violation.resolvedBy = resolvedBy;
+        return true;
     }
     /**
      * Create a new compliance rule
      */
     createRule(rule) {
         const id = `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newRule = Object.assign(Object.assign({}, rule), { id });
+        const newRule = { ...rule, id };
         this.rules.set(id, newRule);
         return newRule;
     }
@@ -445,5 +424,4 @@ exports.ComplianceService = ComplianceService;
 function createComplianceService(config) {
     return new ComplianceService(config);
 }
-exports.createComplianceService = createComplianceService;
 //# sourceMappingURL=ComplianceService.js.map

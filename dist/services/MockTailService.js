@@ -1,15 +1,7 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMockTailService = exports.MockTailService = void 0;
+exports.MockTailService = void 0;
+exports.createMockTailService = createMockTailService;
 class MockTailService {
     constructor(config) {
         this.config = config;
@@ -215,8 +207,7 @@ class MockTailService {
         };
     }
     generateFieldValue(field) {
-        var _a;
-        const fieldType = ((_a = field.type) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || 'string';
+        const fieldType = field.type?.toLowerCase() || 'string';
         switch (fieldType) {
             case 'string':
             case 'varchar':
@@ -249,34 +240,29 @@ class MockTailService {
         return new Date(randomTime).toISOString();
     }
     // Export data to files
-    exportToFile(data, filename) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const fs = require('fs').promises;
-            const path = require('path');
-            const outputPath = path.join(this.config.outputPath || './mock-data', filename);
-            yield fs.writeFile(outputPath, JSON.stringify(data, null, 2));
-            console.log(`📁 Mock data exported to: ${outputPath}`);
-        });
+    async exportToFile(data, filename) {
+        const fs = require('fs').promises;
+        const path = require('path');
+        const outputPath = path.join(this.config.outputPath || './mock-data', filename);
+        await fs.writeFile(outputPath, JSON.stringify(data, null, 2));
+        console.log(`📁 Mock data exported to: ${outputPath}`);
     }
     // Generate and export all data types
-    generateAll() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎭 Generating mock data with MockTail...');
-            const users = this.generate('user', this.config.seedCount || 50);
-            const posts = this.generate('post', this.config.seedCount || 30);
-            const products = this.generate('product', this.config.seedCount || 25);
-            const orders = this.generate('order', this.config.seedCount || 20);
-            yield this.exportToFile(users, 'users.json');
-            yield this.exportToFile(posts, 'posts.json');
-            yield this.exportToFile(products, 'products.json');
-            yield this.exportToFile(orders, 'orders.json');
-            console.log('✅ Mock data generation complete!');
-        });
+    async generateAll() {
+        console.log('🎭 Generating mock data with MockTail...');
+        const users = this.generate('user', this.config.seedCount || 50);
+        const posts = this.generate('post', this.config.seedCount || 30);
+        const products = this.generate('product', this.config.seedCount || 25);
+        const orders = this.generate('order', this.config.seedCount || 20);
+        await this.exportToFile(users, 'users.json');
+        await this.exportToFile(posts, 'posts.json');
+        await this.exportToFile(products, 'products.json');
+        await this.exportToFile(orders, 'orders.json');
+        console.log('✅ Mock data generation complete!');
     }
 }
 exports.MockTailService = MockTailService;
 function createMockTailService(config) {
     return new MockTailService(config);
 }
-exports.createMockTailService = createMockTailService;
 //# sourceMappingURL=MockTailService.js.map

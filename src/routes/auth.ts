@@ -42,6 +42,7 @@ export function createAuthRoutes(
             success: false,
             error: 'Validation failed',
             details: errors.array(),
+            timestamp: new Date().toISOString(),
           });
         }
 

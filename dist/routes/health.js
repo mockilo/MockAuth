@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createHealthRoutes = void 0;
+exports.createHealthRoutes = createHealthRoutes;
 const express_1 = require("express");
 const caching_1 = require("../middleware/caching");
 const performance_1 = require("../middleware/performance");
@@ -22,7 +22,10 @@ function createHealthRoutes() {
         };
         res.json({
             success: true,
-            data: Object.assign(Object.assign({}, healthCheck), { performance: performance_1.performanceMonitor.getMetrics() }),
+            data: {
+                ...healthCheck,
+                performance: performance_1.performanceMonitor.getMetrics(),
+            },
         });
     };
     // Use caching only in production
@@ -48,14 +51,18 @@ function createHealthRoutes() {
         };
         // Add memory usage
         const memoryUsage = process.memoryUsage();
-        const healthData = Object.assign(Object.assign({}, healthCheck), { memory: {
+        const healthData = {
+            ...healthCheck,
+            memory: {
                 rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
                 heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
                 heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
                 external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`,
-            }, cpu: {
+            },
+            cpu: {
                 usage: process.cpuUsage(),
-            } });
+            },
+        };
         res.json({
             success: true,
             data: healthData,
@@ -92,5 +99,4 @@ function createHealthRoutes() {
     });
     return router;
 }
-exports.createHealthRoutes = createHealthRoutes;
 //# sourceMappingURL=health.js.map

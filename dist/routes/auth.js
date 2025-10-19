@@ -1,15 +1,6 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAuthRoutes = void 0;
+exports.createAuthRoutes = createAuthRoutes;
 const express_1 = require("express");
 // SECURITY NOTE: Using express-validator which depends on validator package.
 // The validator package has a known URL validation vulnerability (GHSA-9965-vmph-33xx).
@@ -23,7 +14,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
     router.post('/login', [
         (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
         (0, express_validator_1.body)('password').isLength({ min: 1 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -31,6 +22,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                     success: false,
                     error: 'Validation failed',
                     details: errors.array(),
+                    timestamp: new Date().toISOString(),
                 });
             }
             const { email, password, rememberMe, device, ipAddress, userAgent } = req.body;
@@ -42,10 +34,10 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 ipAddress: ipAddress || req.ip,
                 userAgent: userAgent || req.get('User-Agent'),
             };
-            const response = yield authService.login(loginRequest);
+            const response = await authService.login(loginRequest);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'user.login',
                     resource: 'auth',
                     details: { email, success: true },
@@ -56,7 +48,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             // Send webhook
             if (webhookService) {
-                yield webhookService.send('user.login', {
+                await webhookService.send('user.login', {
                     user: response.user,
                     session: { id: response.sessionId },
                 });
@@ -69,7 +61,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         catch (error) {
             // Log failed login
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'user.login',
                     resource: 'auth',
                     details: {
@@ -92,13 +84,13 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Login failed',
             });
         }
-    }));
+    });
     // Register endpoint
     router.post('/register', [
         (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
         (0, express_validator_1.body)('password').isLength({ min: 8 }),
         (0, express_validator_1.body)('username').isLength({ min: 3, max: 30 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -117,10 +109,10 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 roles,
                 permissions,
             };
-            const response = yield authService.register(registerRequest);
+            const response = await authService.register(registerRequest);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'user.created',
                     resource: 'auth',
                     details: { email, username, success: true },
@@ -131,7 +123,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             // Send webhook
             if (webhookService) {
-                yield webhookService.send('user.created', {
+                await webhookService.send('user.created', {
                     user: response.user,
                 });
             }
@@ -143,7 +135,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
         catch (error) {
             // Log failed registration
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'user.created',
                     resource: 'auth',
                     details: {
@@ -166,19 +158,18 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Registration failed',
             });
         }
-    }));
+    });
     // Logout endpoint
-    router.post('/logout', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+    router.post('/logout', async (req, res) => {
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -195,11 +186,11 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const decoded = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
             const sessionId = decoded.sessionId;
-            const success = yield authService.logout(sessionId);
+            const success = await authService.logout(sessionId);
             if (success) {
                 // Log audit event
                 if (auditService) {
-                    yield auditService.log({
+                    await auditService.log({
                         action: 'user.logout',
                         resource: 'auth',
                         details: { userId: user.id, success: true },
@@ -210,7 +201,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 }
                 // Send webhook
                 if (webhookService) {
-                    yield webhookService.send('user.logout', {
+                    await webhookService.send('user.logout', {
                         user: { id: user.id, email: user.email },
                     });
                 }
@@ -232,9 +223,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Logout failed',
             });
         }
-    }));
+    });
     // Refresh token endpoint
-    router.post('/refresh', [(0, express_validator_1.body)('refreshToken').isLength({ min: 1 })], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/refresh', [(0, express_validator_1.body)('refreshToken').isLength({ min: 1 })], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -245,7 +236,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 });
             }
             const { refreshToken } = req.body;
-            const response = yield authService.refreshToken({ refreshToken });
+            const response = await authService.refreshToken({ refreshToken });
             res.json({
                 success: true,
                 data: response,
@@ -257,19 +248,18 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Token refresh failed',
             });
         }
-    }));
+    });
     // Get current user endpoint
-    router.get('/me', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _b;
+    router.get('/me', async (req, res) => {
         try {
-            const token = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.getCurrentUser(token);
+            const user = await authService.getCurrentUser(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -287,19 +277,18 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Failed to get user information',
             });
         }
-    }));
+    });
     // Verify token endpoint
-    router.post('/verify', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _c;
+    router.post('/verify', async (req, res) => {
         try {
-            const token = (_c = req.headers.authorization) === null || _c === void 0 ? void 0 : _c.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -317,26 +306,25 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Token verification failed',
             });
         }
-    }));
+    });
     // Get user sessions endpoint
-    router.get('/sessions', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _d;
+    router.get('/sessions', async (req, res) => {
         try {
-            const token = (_d = req.headers.authorization) === null || _d === void 0 ? void 0 : _d.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            const sessions = yield authService.getUserSessions(user.id);
+            const sessions = await authService.getUserSessions(user.id);
             res.json({
                 success: true,
                 data: sessions,
@@ -348,19 +336,18 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Failed to get user sessions',
             });
         }
-    }));
+    });
     // Revoke session endpoint
-    router.delete('/sessions/:sessionId', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _e;
+    router.delete('/sessions/:sessionId', async (req, res) => {
         try {
-            const token = (_e = req.headers.authorization) === null || _e === void 0 ? void 0 : _e.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -368,7 +355,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 });
             }
             const { sessionId } = req.params;
-            const success = yield authService.revokeSession(sessionId, user.id);
+            const success = await authService.revokeSession(sessionId, user.id);
             if (success) {
                 res.json({
                     success: true,
@@ -388,27 +375,26 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Failed to revoke session',
             });
         }
-    }));
+    });
     // MFA Routes
     // Setup MFA
-    router.post('/mfa/setup', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _f;
+    router.post('/mfa/setup', async (req, res) => {
         try {
-            const token = (_f = req.headers.authorization) === null || _f === void 0 ? void 0 : _f.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            const mfaSetup = yield authService.setupMFA(user.id);
+            const mfaSetup = await authService.setupMFA(user.id);
             res.json({
                 success: true,
                 data: mfaSetup,
@@ -420,13 +406,12 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'MFA setup failed',
             });
         }
-    }));
+    });
     // Verify MFA setup
     router.post('/mfa/verify-setup', [
         (0, express_validator_1.body)('code').isLength({ min: 6, max: 6 }),
         (0, express_validator_1.body)('backupCode').optional().isLength({ min: 8, max: 8 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _g;
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -436,14 +421,14 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                     details: errors.array(),
                 });
             }
-            const token = (_g = req.headers.authorization) === null || _g === void 0 ? void 0 : _g.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -452,7 +437,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const { code, backupCode } = req.body;
             const request = { code, backupCode };
-            const result = yield authService.verifyMFASetup(user.id, request);
+            const result = await authService.verifyMFASetup(user.id, request);
             res.json({
                 success: true,
                 data: result,
@@ -464,13 +449,12 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'MFA verification failed',
             });
         }
-    }));
+    });
     // Verify MFA during login
     router.post('/mfa/verify', [
         (0, express_validator_1.body)('code').isLength({ min: 6, max: 6 }),
         (0, express_validator_1.body)('backupCode').optional().isLength({ min: 8, max: 8 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _h;
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -480,14 +464,14 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                     details: errors.array(),
                 });
             }
-            const token = (_h = req.headers.authorization) === null || _h === void 0 ? void 0 : _h.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -496,7 +480,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const { code, backupCode } = req.body;
             const request = { code, backupCode };
-            const result = yield authService.verifyMFA(user.id, request);
+            const result = await authService.verifyMFA(user.id, request);
             res.json({
                 success: true,
                 data: result,
@@ -508,26 +492,25 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'MFA verification failed',
             });
         }
-    }));
+    });
     // Disable MFA
-    router.delete('/mfa/disable', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _j;
+    router.delete('/mfa/disable', async (req, res) => {
         try {
-            const token = (_j = req.headers.authorization) === null || _j === void 0 ? void 0 : _j.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            yield authService.disableMFA(user.id);
+            await authService.disableMFA(user.id);
             res.json({
                 success: true,
                 message: 'MFA disabled successfully',
@@ -539,26 +522,25 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Failed to disable MFA',
             });
         }
-    }));
+    });
     // Get MFA status
-    router.get('/mfa/status', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _k;
+    router.get('/mfa/status', async (req, res) => {
         try {
-            const token = (_k = req.headers.authorization) === null || _k === void 0 ? void 0 : _k.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            const status = yield authService.getMFAStatus(user.id);
+            const status = await authService.getMFAStatus(user.id);
             res.json({
                 success: true,
                 data: status,
@@ -570,26 +552,25 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: 'Failed to get MFA status',
             });
         }
-    }));
+    });
     // Regenerate backup codes
-    router.post('/mfa/backup-codes/regenerate', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        var _l;
+    router.post('/mfa/backup-codes/regenerate', async (req, res) => {
         try {
-            const token = (_l = req.headers.authorization) === null || _l === void 0 ? void 0 : _l.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            const backupCodes = yield authService.regenerateBackupCodes(user.id);
+            const backupCodes = await authService.regenerateBackupCodes(user.id);
             res.json({
                 success: true,
                 data: { backupCodes },
@@ -601,10 +582,10 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Failed to regenerate backup codes',
             });
         }
-    }));
+    });
     // Password Reset Routes
     // Request password reset
-    router.post('/password-reset/request', [(0, express_validator_1.body)('email').isEmail().normalizeEmail()], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/password-reset/request', [(0, express_validator_1.body)('email').isEmail().normalizeEmail()], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -616,7 +597,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const { email } = req.body;
             const request = { email };
-            const result = yield authService.requestPasswordReset(request);
+            const result = await authService.requestPasswordReset(request);
             res.json({
                 success: true,
                 data: result,
@@ -628,9 +609,9 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Password reset request failed',
             });
         }
-    }));
+    });
     // Verify password reset token
-    router.post('/password-reset/verify', [(0, express_validator_1.body)('token').isLength({ min: 1 })], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/password-reset/verify', [(0, express_validator_1.body)('token').isLength({ min: 1 })], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -642,7 +623,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const { token } = req.body;
             const request = { token };
-            const result = yield authService.verifyPasswordResetToken(request);
+            const result = await authService.verifyPasswordResetToken(request);
             res.json({
                 success: true,
                 data: result,
@@ -654,12 +635,12 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Token verification failed',
             });
         }
-    }));
+    });
     // Complete password reset
     router.post('/password-reset/complete', [
         (0, express_validator_1.body)('token').isLength({ min: 1 }),
         (0, express_validator_1.body)('newPassword').isLength({ min: 8 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -671,7 +652,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
             }
             const { token, newPassword } = req.body;
             const request = { token, newPassword };
-            const result = yield authService.completePasswordReset(request);
+            const result = await authService.completePasswordReset(request);
             res.json({
                 success: true,
                 data: result,
@@ -683,8 +664,7 @@ function createAuthRoutes(authService, userService, webhookService, auditService
                 error: error.message || 'Password reset failed',
             });
         }
-    }));
+    });
     return router;
 }
-exports.createAuthRoutes = createAuthRoutes;
 //# sourceMappingURL=auth.js.map

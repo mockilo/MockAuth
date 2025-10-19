@@ -16,22 +16,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -51,90 +52,88 @@ class MockAuthCLI {
             output: process.stdout,
         });
     }
-    run() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const args = this.parseArgs();
-            if (args.help) {
+    async run() {
+        const args = this.parseArgs();
+        if (args.help) {
+            this.showHelp();
+            return;
+        }
+        // Validate command
+        const validCommands = [
+            'init',
+            'start',
+            'stop',
+            'restart',
+            'reset',
+            'status',
+            'list',
+            'kill-all',
+            'test',
+            'generate',
+            'migrate',
+            'builder',
+            'debug',
+            'health',
+            'migrate-to',
+            'help',
+        ];
+        if (!validCommands.includes(args.command)) {
+            this.showInvalidCommand(args.command, validCommands);
+            return;
+        }
+        switch (args.command) {
+            case 'init':
+                await this.initProject(args);
+                break;
+            case 'start':
+                await this.startServer(args);
+                break;
+            case 'stop':
+                await this.stopServer(args);
+                break;
+            case 'restart':
+                await this.restartServer(args);
+                break;
+            case 'reset':
+                await this.resetServer(args);
+                break;
+            case 'status':
+                await this.checkServerStatus(args);
+                break;
+            case 'list':
+                await this.listServers(args);
+                break;
+            case 'kill-all':
+                await this.killAllServers(args);
+                break;
+            case 'test':
+                await this.runTests(args);
+                break;
+            case 'generate':
+                await this.generateData(args);
+                break;
+            case 'migrate':
+                await this.migrateDatabase(args);
+                break;
+            case 'builder':
+                await this.launchBuilder(args);
+                break;
+            case 'debug':
+                await this.startDebugMode(args);
+                break;
+            case 'health':
+                await this.runHealthCheck(args);
+                break;
+            case 'migrate-to':
+                await this.generateMigration(args);
+                break;
+            case 'help':
                 this.showHelp();
-                return;
-            }
-            // Validate command
-            const validCommands = [
-                'init',
-                'start',
-                'stop',
-                'restart',
-                'reset',
-                'status',
-                'list',
-                'kill-all',
-                'test',
-                'generate',
-                'migrate',
-                'builder',
-                'debug',
-                'health',
-                'migrate-to',
-                'help',
-            ];
-            if (!validCommands.includes(args.command)) {
-                this.showInvalidCommand(args.command, validCommands);
-                return;
-            }
-            switch (args.command) {
-                case 'init':
-                    yield this.initProject(args);
-                    break;
-                case 'start':
-                    yield this.startServer(args);
-                    break;
-                case 'stop':
-                    yield this.stopServer(args);
-                    break;
-                case 'restart':
-                    yield this.restartServer(args);
-                    break;
-                case 'reset':
-                    yield this.resetServer(args);
-                    break;
-                case 'status':
-                    yield this.checkServerStatus(args);
-                    break;
-                case 'list':
-                    yield this.listServers(args);
-                    break;
-                case 'kill-all':
-                    yield this.killAllServers(args);
-                    break;
-                case 'test':
-                    yield this.runTests(args);
-                    break;
-                case 'generate':
-                    yield this.generateData(args);
-                    break;
-                case 'migrate':
-                    yield this.migrateDatabase(args);
-                    break;
-                case 'builder':
-                    yield this.launchBuilder(args);
-                    break;
-                case 'debug':
-                    yield this.startDebugMode(args);
-                    break;
-                case 'health':
-                    yield this.runHealthCheck(args);
-                    break;
-                case 'migrate-to':
-                    yield this.generateMigration(args);
-                    break;
-                case 'help':
-                    this.showHelp();
-                    break;
-                default:
-                    console.log(`❌ Unknown command: ${args.command}`);
-                    this.showHelp();
-            }
-        });
+                break;
+            default:
+                console.log(`❌ Unknown command: ${args.command}`);
+                this.showHelp();
+        }
     }
     // Calculate Levenshtein distance for fuzzy matching
     levenshteinDistance(str1, str2) {
@@ -649,102 +648,98 @@ USAGE:
 
 📚 NEED HELP?
   Documentation:  https://mockauth.dev/docs
-  GitHub Issues:  https://github.com/mockauth/mockauth
+  GitHub Issues:  https://github.com/mockilo/mockauth
   Discord:        https://discord.gg/mockauth
 
 💡 Tip: Run mockauth <command> --help for detailed info about a specific command
     `);
     }
-    initProject(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎯 Initializing MockAuth project...\n');
-            const config = yield this.createInteractiveConfig();
-            // Create config file
-            const configPath = options.config || 'mockauth.config.js';
-            const configContent = `module.exports = ${JSON.stringify(config, null, 2)};`;
-            fs.writeFileSync(configPath, configContent);
-            // Create example files
-            this.createExampleFiles(config);
-            console.log('\n✅ MockAuth project initialized!');
-            console.log(`📁 Configuration: ${configPath}`);
-            console.log('📁 Example files created in ./examples/');
-            console.log('\n🚀 To start MockAuth:');
-            console.log('   mockauth start');
-        });
+    async initProject(options) {
+        console.log('🎯 Initializing MockAuth project...\n');
+        const config = await this.createInteractiveConfig();
+        // Create config file
+        const configPath = options.config || 'mockauth.config.js';
+        const configContent = `module.exports = ${JSON.stringify(config, null, 2)};`;
+        fs.writeFileSync(configPath, configContent);
+        // Create example files
+        this.createExampleFiles(config);
+        console.log('\n✅ MockAuth project initialized!');
+        console.log(`📁 Configuration: ${configPath}`);
+        console.log('📁 Example files created in ./examples/');
+        console.log('\n🚀 To start MockAuth:');
+        console.log('   mockauth start');
     }
-    createInteractiveConfig() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const config = {
-                port: 3001,
-                baseUrl: 'http://localhost:3001',
-                jwtSecret: this.generateSecret(),
-                users: [],
-                enableMFA: true,
-                enablePasswordReset: true,
-                enableAccountLockout: true,
-                logLevel: 'info',
-                enableAuditLog: true,
-                maxLoginAttempts: 5,
-                lockoutDuration: '15m',
-                database: {
-                    type: 'memory',
+    async createInteractiveConfig() {
+        const config = {
+            port: 3001,
+            baseUrl: 'http://localhost:3001',
+            jwtSecret: this.generateSecret(),
+            users: [],
+            enableMFA: true,
+            enablePasswordReset: true,
+            enableAccountLockout: true,
+            logLevel: 'info',
+            enableAuditLog: true,
+            maxLoginAttempts: 5,
+            lockoutDuration: '15m',
+            database: {
+                type: 'memory',
+            },
+            ecosystem: {
+                mocktail: {
+                    enabled: true,
+                    outputPath: './mock-data',
+                    seedCount: 100,
                 },
-                ecosystem: {
-                    mocktail: {
-                        enabled: true,
-                        outputPath: './mock-data',
-                        seedCount: 100,
-                    },
-                    schemaghost: {
-                        enabled: true,
-                        port: 3002,
-                    },
+                schemaghost: {
+                    enabled: true,
+                    port: 3002,
                 },
+            },
+        };
+        // Interactive configuration
+        console.log('📝 Project Configuration:');
+        const port = await this.question('Server port (3001): ');
+        if (port)
+            config.port = parseInt(port) || 3001;
+        const baseUrl = await this.question('Base URL (http://localhost:3001): ');
+        if (baseUrl)
+            config.baseUrl = baseUrl;
+        const database = await this.question('Database type (memory|sqlite|postgresql|mysql) [memory]: ');
+        if (database &&
+            ['memory', 'sqlite', 'postgresql', 'mysql'].includes(database)) {
+            config.database.type = database;
+        }
+        const enableMFA = await this.question('Enable MFA? (y/n) [y]: ');
+        config.enableMFA = enableMFA.toLowerCase() !== 'n';
+        const enableEcosystem = await this.question('Enable MockTail & SchemaGhost? (y/n) [y]: ');
+        if (enableEcosystem.toLowerCase() === 'n') {
+            config.ecosystem = {
+                mocktail: { enabled: false },
+                schemaghost: { enabled: false },
             };
-            // Interactive configuration
-            console.log('📝 Project Configuration:');
-            const port = yield this.question('Server port (3001): ');
-            if (port)
-                config.port = parseInt(port) || 3001;
-            const baseUrl = yield this.question('Base URL (http://localhost:3001): ');
-            if (baseUrl)
-                config.baseUrl = baseUrl;
-            const database = yield this.question('Database type (memory|sqlite|postgresql|mysql) [memory]: ');
-            if (database &&
-                ['memory', 'sqlite', 'postgresql', 'mysql'].includes(database)) {
-                config.database.type = database;
-            }
-            const enableMFA = yield this.question('Enable MFA? (y/n) [y]: ');
-            config.enableMFA = enableMFA.toLowerCase() !== 'n';
-            const enableEcosystem = yield this.question('Enable MockTail & SchemaGhost? (y/n) [y]: ');
-            if (enableEcosystem.toLowerCase() === 'n') {
-                config.ecosystem = {
-                    mocktail: { enabled: false },
-                    schemaghost: { enabled: false },
-                };
-            }
-            // Create default users
-            const createUsers = yield this.question('Create default users? (y/n) [y]: ');
-            if (createUsers.toLowerCase() !== 'n') {
-                config.users = [
-                    {
-                        email: 'admin@example.com',
-                        username: 'admin',
-                        password: 'admin123',
-                        roles: ['admin'],
-                        permissions: ['read:users', 'write:users', 'delete:users'],
-                    },
-                    {
-                        email: 'user@example.com',
-                        username: 'user',
-                        password: 'user123',
-                        roles: ['user'],
-                        permissions: ['read:profile'],
-                    },
-                ];
-            }
-            return config;
-        });
+        }
+        // Create default users
+        const createUsers = await this.question('Create default users? (y/n) [y]: ');
+        if (createUsers.toLowerCase() !== 'n') {
+            config.users = [
+                {
+                    email: 'admin@example.com',
+                    username: 'admin',
+                    password: 'admin123',
+                    roles: ['admin'],
+                    permissions: ['read:users', 'write:users', 'delete:users'],
+                },
+                {
+                    email: 'user@example.com',
+                    username: 'user',
+                    password: 'user123',
+                    roles: ['user'],
+                    permissions: ['read:profile'],
+                },
+            ];
+        }
+        return config;
     }
     createExampleFiles(config) {
         const examplesDir = './examples';
@@ -864,40 +859,37 @@ testMockAuth().catch(console.error);`;
 }`;
         fs.writeFileSync(path.join(examplesDir, 'package.json'), packageJson);
     }
-    startServer(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🚀 Starting MockAuth server...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                const auth = new index_1.MockAuth(config);
-                yield auth.start();
-                console.log('✅ MockAuth server started successfully!');
-                console.log(`🔗 Server running on: ${config.baseUrl}`);
-                console.log('📚 Available endpoints:');
-                console.log('   • Health: /health');
-                console.log('   • API Docs: /api');
-                console.log('   • Login: POST /auth/login');
-                console.log('   • Users: GET /users');
-                console.log('   • Metrics: GET /metrics');
-                console.log('\n🔄 Press Ctrl+C to stop');
-                // Keep the process running
-                process.on('SIGINT', () => __awaiter(this, void 0, void 0, function* () {
-                    console.log('\n🛑 Shutting down MockAuth...');
-                    yield auth.stop();
-                    process.exit(0);
-                }));
-            }
-            catch (error) {
-                console.error('❌ Error starting MockAuth:', error.message);
-                console.log('💡 Run "mockauth init" first to create configuration');
-                process.exit(1);
-            }
-        });
+    async startServer(options) {
+        console.log('🚀 Starting MockAuth server...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            const auth = new index_1.MockAuth(config);
+            await auth.start();
+            console.log('✅ MockAuth server started successfully!');
+            console.log(`🔗 Server running on: ${config.baseUrl}`);
+            console.log('📚 Available endpoints:');
+            console.log('   • Health: /health');
+            console.log('   • API Docs: /api');
+            console.log('   • Login: POST /auth/login');
+            console.log('   • Users: GET /users');
+            console.log('   • Metrics: GET /metrics');
+            console.log('\n🔄 Press Ctrl+C to stop');
+            // Keep the process running
+            process.on('SIGINT', async () => {
+                console.log('\n🛑 Shutting down MockAuth...');
+                await auth.stop();
+                process.exit(0);
+            });
+        }
+        catch (error) {
+            console.error('❌ Error starting MockAuth:', error.message);
+            console.log('💡 Run "mockauth init" first to create configuration');
+            process.exit(1);
+        }
     }
-    runTests(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🧪 Running MockAuth tests...\n');
-            const testCode = `
+    async runTests(options) {
+        console.log('🧪 Running MockAuth tests...\n');
+        const testCode = `
 const { MockAuth } = require('mockauth');
 
 async function testMockAuth() {
@@ -927,48 +919,43 @@ async function testMockAuth() {
 }
 
 testMockAuth().catch(console.error);`;
-            const testFile = 'test-mockauth.js';
-            fs.writeFileSync(testFile, testCode);
-            console.log(`📝 Test file created: ${testFile}`);
-            console.log('🚀 Run: node test-mockauth.js');
-        });
+        const testFile = 'test-mockauth.js';
+        fs.writeFileSync(testFile, testCode);
+        console.log(`📝 Test file created: ${testFile}`);
+        console.log('🚀 Run: node test-mockauth.js');
     }
-    generateData(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎭 Generating mock data...\n');
-            const outputPath = options.output || './mock-data';
-            if (!fs.existsSync(outputPath)) {
-                fs.mkdirSync(outputPath, { recursive: true });
-            }
-            // Generate sample data
-            const users = this.generateUsers(50);
-            const posts = this.generatePosts(100);
-            const products = this.generateProducts(75);
-            fs.writeFileSync(path.join(outputPath, 'users.json'), JSON.stringify(users, null, 2));
-            fs.writeFileSync(path.join(outputPath, 'posts.json'), JSON.stringify(posts, null, 2));
-            fs.writeFileSync(path.join(outputPath, 'products.json'), JSON.stringify(products, null, 2));
-            console.log(`✅ Mock data generated in: ${outputPath}`);
-            console.log('📁 Files created:');
-            console.log('   • users.json (50 users)');
-            console.log('   • posts.json (100 posts)');
-            console.log('   • products.json (75 products)');
-        });
+    async generateData(options) {
+        console.log('🎭 Generating mock data...\n');
+        const outputPath = options.output || './mock-data';
+        if (!fs.existsSync(outputPath)) {
+            fs.mkdirSync(outputPath, { recursive: true });
+        }
+        // Generate sample data
+        const users = this.generateUsers(50);
+        const posts = this.generatePosts(100);
+        const products = this.generateProducts(75);
+        fs.writeFileSync(path.join(outputPath, 'users.json'), JSON.stringify(users, null, 2));
+        fs.writeFileSync(path.join(outputPath, 'posts.json'), JSON.stringify(posts, null, 2));
+        fs.writeFileSync(path.join(outputPath, 'products.json'), JSON.stringify(products, null, 2));
+        console.log(`✅ Mock data generated in: ${outputPath}`);
+        console.log('📁 Files created:');
+        console.log('   • users.json (50 users)');
+        console.log('   • posts.json (100 posts)');
+        console.log('   • products.json (75 products)');
     }
-    migrateDatabase(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🗄️ Running database migrations...\n');
-            const config = this.loadConfig(options.config);
-            const auth = new index_1.MockAuth(config);
-            try {
-                yield auth.start();
-                console.log('✅ Database migrations completed');
-                yield auth.stop();
-            }
-            catch (error) {
-                console.error('❌ Migration error:', error.message);
-                process.exit(1);
-            }
-        });
+    async migrateDatabase(options) {
+        console.log('🗄️ Running database migrations...\n');
+        const config = this.loadConfig(options.config);
+        const auth = new index_1.MockAuth(config);
+        try {
+            await auth.start();
+            console.log('✅ Database migrations completed');
+            await auth.stop();
+        }
+        catch (error) {
+            console.error('❌ Migration error:', error.message);
+            process.exit(1);
+        }
     }
     loadConfig(configPath) {
         // FIXED: Properly resolve absolute path
@@ -984,12 +971,10 @@ testMockAuth().catch(console.error);`;
             throw new Error(`Failed to load configuration: ${error.message}`);
         }
     }
-    question(prompt) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                this.rl.question(prompt, (answer) => {
-                    resolve(answer.trim());
-                });
+    async question(prompt) {
+        return new Promise((resolve) => {
+            this.rl.question(prompt, (answer) => {
+                resolve(answer.trim());
             });
         });
     }
@@ -1041,505 +1026,468 @@ testMockAuth().catch(console.error);`;
         }
         return products;
     }
-    launchBuilder(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🎨 Launching MockAuth Visual Builder...\n');
-            const port = options.port || 3000;
-            console.log(`🌐 Builder will be available at: http://localhost:${port}`);
-            console.log('📝 Features:');
-            console.log('   • Drag-and-drop user management');
-            console.log('   • Real-time configuration preview');
-            console.log('   • Visual role and permission mapping');
-            console.log('   • Test scenarios builder');
-            console.log('   • Export configuration as code');
-            console.log('\n🚀 Starting builder...');
-            // Start the web builder
-            const { spawn } = require('child_process');
-            const builder = spawn('node', ['src/web-builder/server.js', '--port', port.toString()], {
-                stdio: 'inherit',
-            });
-            builder.on('error', (error) => {
-                console.error('❌ Error starting builder:', error.message);
-                console.log('💡 Make sure the web builder is properly installed');
-            });
-            process.on('SIGINT', () => {
-                console.log('\n🛑 Stopping builder...');
-                builder.kill();
+    async launchBuilder(options) {
+        console.log('🎨 Launching MockAuth Visual Builder...\n');
+        const port = options.port || 3000;
+        console.log(`🌐 Builder will be available at: http://localhost:${port}`);
+        console.log('📝 Features:');
+        console.log('   • Drag-and-drop user management');
+        console.log('   • Real-time configuration preview');
+        console.log('   • Visual role and permission mapping');
+        console.log('   • Test scenarios builder');
+        console.log('   • Export configuration as code');
+        console.log('\n🚀 Starting builder...');
+        // Start the web builder
+        const { spawn } = require('child_process');
+        const builder = spawn('node', ['dist/web-builder/server.js', '--port', port.toString()], {
+            stdio: 'inherit',
+        });
+        builder.on('error', (error) => {
+            console.error('❌ Error starting builder:', error.message);
+            console.log('💡 Make sure the web builder is properly installed');
+        });
+        process.on('SIGINT', () => {
+            console.log('\n🛑 Stopping builder...');
+            builder.kill();
+            process.exit(0);
+        });
+    }
+    async startDebugMode(options) {
+        console.log('🔍 Starting MockAuth Debug Mode...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            const auth = new index_1.MockAuth(config);
+            await auth.start();
+            console.log('✅ MockAuth debug server started!');
+            console.log(`🔗 Server: ${config.baseUrl}`);
+            console.log(`🔍 Debug Console: ${config.baseUrl}/debug`);
+            console.log('📊 Features:');
+            console.log('   • Real-time request/response inspection');
+            console.log('   • Live user session monitoring');
+            console.log('   • Token validation and debugging');
+            console.log('   • Performance metrics dashboard');
+            console.log('   • API testing playground');
+            console.log('\n🔄 Press Ctrl+C to stop');
+            process.on('SIGINT', async () => {
+                console.log('\n🛑 Shutting down debug mode...');
+                await auth.stop();
                 process.exit(0);
             });
-        });
+        }
+        catch (error) {
+            console.error('❌ Error starting debug mode:', error.message);
+            process.exit(1);
+        }
     }
-    startDebugMode(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔍 Starting MockAuth Debug Mode...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                const auth = new index_1.MockAuth(config);
-                yield auth.start();
-                console.log('✅ MockAuth debug server started!');
-                console.log(`🔗 Server: ${config.baseUrl}`);
-                console.log(`🔍 Debug Console: ${config.baseUrl}/debug`);
-                console.log('📊 Features:');
-                console.log('   • Real-time request/response inspection');
-                console.log('   • Live user session monitoring');
-                console.log('   • Token validation and debugging');
-                console.log('   • Performance metrics dashboard');
-                console.log('   • API testing playground');
-                console.log('\n🔄 Press Ctrl+C to stop');
-                process.on('SIGINT', () => __awaiter(this, void 0, void 0, function* () {
-                    console.log('\n🛑 Shutting down debug mode...');
-                    yield auth.stop();
-                    process.exit(0);
-                }));
+    async runHealthCheck(options) {
+        console.log('🏥 Running MockAuth Health Check...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            const auth = new index_1.MockAuth(config);
+            await auth.start();
+            // Run comprehensive health checks
+            const healthStatus = await this.performHealthChecks(auth);
+            console.log('📊 Health Check Results:');
+            console.log(`✅ Server: ${healthStatus.server ? 'Running' : 'Failed'} on port ${config.port}`);
+            console.log(`✅ Database: ${healthStatus.database ? 'Connected' : 'Failed'}`);
+            console.log(`✅ Memory: ${healthStatus.memory}MB (${healthStatus.memoryStatus})`);
+            console.log(`✅ Response Time: ${healthStatus.responseTime}ms (${healthStatus.performanceStatus})`);
+            console.log(`✅ Active Sessions: ${healthStatus.activeSessions}`);
+            if (healthStatus.warnings.length > 0) {
+                console.log('\n⚠️  Warnings:');
+                healthStatus.warnings.forEach((warning) => {
+                    console.log(`   • ${warning}`);
+                });
             }
-            catch (error) {
-                console.error('❌ Error starting debug mode:', error.message);
-                process.exit(1);
+            if (healthStatus.suggestions.length > 0) {
+                console.log('\n💡 Suggestions:');
+                healthStatus.suggestions.forEach((suggestion) => {
+                    console.log(`   • ${suggestion}`);
+                });
             }
-        });
+            await auth.stop();
+            const overallStatus = healthStatus.server &&
+                healthStatus.database &&
+                healthStatus.memoryStatus === 'Normal';
+            console.log(`\n${overallStatus ? '✅' : '❌'} Overall Status: ${overallStatus ? 'Healthy' : 'Issues Detected'}`);
+        }
+        catch (error) {
+            console.error('❌ Health check failed:', error.message);
+            process.exit(1);
+        }
     }
-    runHealthCheck(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🏥 Running MockAuth Health Check...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                const auth = new index_1.MockAuth(config);
-                yield auth.start();
-                // Run comprehensive health checks
-                const healthStatus = yield this.performHealthChecks(auth);
-                console.log('📊 Health Check Results:');
-                console.log(`✅ Server: ${healthStatus.server ? 'Running' : 'Failed'} on port ${config.port}`);
-                console.log(`✅ Database: ${healthStatus.database ? 'Connected' : 'Failed'}`);
-                console.log(`✅ Memory: ${healthStatus.memory}MB (${healthStatus.memoryStatus})`);
-                console.log(`✅ Response Time: ${healthStatus.responseTime}ms (${healthStatus.performanceStatus})`);
-                console.log(`✅ Active Sessions: ${healthStatus.activeSessions}`);
-                if (healthStatus.warnings.length > 0) {
-                    console.log('\n⚠️  Warnings:');
-                    healthStatus.warnings.forEach((warning) => {
-                        console.log(`   • ${warning}`);
-                    });
+    async stopServer(options) {
+        console.log('🛑 Stopping MockAuth server...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            const port = options.port || config.port;
+            // Try to find and stop the server process
+            const serverProcess = await this.findServerProcess(port);
+            if (serverProcess) {
+                console.log(`📡 Found server running on port ${port} (PID: ${serverProcess.pid})`);
+                // Graceful shutdown
+                process.kill(serverProcess.pid, 'SIGTERM');
+                // Wait a moment for graceful shutdown
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                // Force kill if still running
+                try {
+                    process.kill(serverProcess.pid, 'SIGKILL');
                 }
-                if (healthStatus.suggestions.length > 0) {
-                    console.log('\n💡 Suggestions:');
-                    healthStatus.suggestions.forEach((suggestion) => {
-                        console.log(`   • ${suggestion}`);
-                    });
+                catch (error) {
+                    // Process already stopped
                 }
-                yield auth.stop();
-                const overallStatus = healthStatus.server &&
-                    healthStatus.database &&
-                    healthStatus.memoryStatus === 'Normal';
-                console.log(`\n${overallStatus ? '✅' : '❌'} Overall Status: ${overallStatus ? 'Healthy' : 'Issues Detected'}`);
+                console.log('✅ MockAuth server stopped successfully');
             }
-            catch (error) {
-                console.error('❌ Health check failed:', error.message);
-                process.exit(1);
+            else {
+                console.log(`ℹ️  No MockAuth server found running on port ${port}`);
             }
-        });
+        }
+        catch (error) {
+            console.error('❌ Error stopping server:', error.message);
+            console.log('💡 Try running "mockauth list" to see running servers');
+        }
     }
-    stopServer(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🛑 Stopping MockAuth server...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                const port = options.port || config.port;
-                // Try to find and stop the server process
-                const serverProcess = yield this.findServerProcess(port);
-                if (serverProcess) {
-                    console.log(`📡 Found server running on port ${port} (PID: ${serverProcess.pid})`);
+    async restartServer(options) {
+        console.log('🔄 Restarting MockAuth server...\n');
+        try {
+            // First stop the server
+            await this.stopServer(options);
+            // Wait a moment
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Then start it again
+            await this.startServer(options);
+        }
+        catch (error) {
+            console.error('❌ Error restarting server:', error.message);
+        }
+    }
+    async resetServer(options) {
+        console.log('🔄 Resetting MockAuth server...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            // Stop server if running
+            await this.stopServer(options);
+            // Clear database/data files
+            console.log('🗑️  Clearing server data...');
+            await this.clearServerData(config);
+            // Restart server
+            console.log('🚀 Starting fresh server...');
+            await this.startServer(options);
+            console.log('✅ MockAuth server reset successfully');
+        }
+        catch (error) {
+            console.error('❌ Error resetting server:', error.message);
+        }
+    }
+    async checkServerStatus(options) {
+        console.log('📊 Checking MockAuth server status...\n');
+        try {
+            const config = this.loadConfig(options.config);
+            const port = options.port || config.port;
+            // Check if server is running
+            const serverProcess = await this.findServerProcess(port);
+            if (serverProcess) {
+                console.log('✅ Server Status: Running');
+                console.log(`📡 Port: ${port}`);
+                console.log(`🆔 Process ID: ${serverProcess.pid}`);
+                console.log(`🔗 URL: ${config.baseUrl}`);
+                // Test server health
+                const isHealthy = await this.testServerHealth(config.baseUrl);
+                console.log(`💚 Health: ${isHealthy ? 'Healthy' : 'Unhealthy'}`);
+                if (isHealthy) {
+                    console.log('\n📚 Available endpoints:');
+                    console.log('   • Health: /health');
+                    console.log('   • API Docs: /api');
+                    console.log('   • Login: POST /auth/login');
+                    console.log('   • Users: GET /users');
+                }
+            }
+            else {
+                console.log('❌ Server Status: Not Running');
+                console.log(`📡 Port ${port} is available`);
+                console.log('💡 Run "mockauth start" to start the server');
+            }
+        }
+        catch (error) {
+            console.error('❌ Error checking server status:', error.message);
+        }
+    }
+    async listServers(options) {
+        console.log('📋 Listing all MockAuth servers...\n');
+        try {
+            const runningServers = await this.findAllMockAuthServers();
+            if (runningServers.length === 0) {
+                console.log('ℹ️  No MockAuth servers currently running');
+                console.log('💡 Run "mockauth start" to start a server');
+                return;
+            }
+            console.log(`Found ${runningServers.length} MockAuth server(s):\n`);
+            runningServers.forEach((server, index) => {
+                console.log(`${index + 1}. MockAuth Server`);
+                console.log(`   📡 Port: ${server.port}`);
+                console.log(`   🆔 PID: ${server.pid}`);
+                console.log(`   🔗 URL: http://localhost:${server.port}`);
+                console.log(`   ⏰ Started: ${server.startTime}`);
+                console.log('');
+            });
+            console.log('💡 Use "mockauth stop --port <port>" to stop a specific server');
+            console.log('💡 Use "mockauth kill-all" to stop all servers');
+        }
+        catch (error) {
+            console.error('❌ Error listing servers:', error.message);
+        }
+    }
+    async killAllServers(options) {
+        console.log('💀 Stopping all MockAuth servers...\n');
+        try {
+            const runningServers = await this.findAllMockAuthServers();
+            if (runningServers.length === 0) {
+                console.log('ℹ️  No MockAuth servers currently running');
+                return;
+            }
+            console.log(`Found ${runningServers.length} server(s) to stop:\n`);
+            for (const server of runningServers) {
+                console.log(`🛑 Stopping server on port ${server.port} (PID: ${server.pid})...`);
+                try {
                     // Graceful shutdown
-                    process.kill(serverProcess.pid, 'SIGTERM');
-                    // Wait a moment for graceful shutdown
-                    yield new Promise((resolve) => setTimeout(resolve, 2000));
+                    process.kill(server.pid, 'SIGTERM');
+                    // Wait for graceful shutdown
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                     // Force kill if still running
                     try {
-                        process.kill(serverProcess.pid, 'SIGKILL');
+                        process.kill(server.pid, 'SIGKILL');
                     }
                     catch (error) {
                         // Process already stopped
                     }
-                    console.log('✅ MockAuth server stopped successfully');
+                    console.log(`✅ Server on port ${server.port} stopped`);
                 }
-                else {
-                    console.log(`ℹ️  No MockAuth server found running on port ${port}`);
+                catch (error) {
+                    console.log(`⚠️  Could not stop server on port ${server.port}: ${error.message}`);
                 }
             }
-            catch (error) {
-                console.error('❌ Error stopping server:', error.message);
-                console.log('💡 Try running "mockauth list" to see running servers');
-            }
-        });
+            console.log('\n✅ All MockAuth servers stopped');
+        }
+        catch (error) {
+            console.error('❌ Error stopping servers:', error.message);
+        }
     }
-    restartServer(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔄 Restarting MockAuth server...\n');
-            try {
-                // First stop the server
-                yield this.stopServer(options);
-                // Wait a moment
-                yield new Promise((resolve) => setTimeout(resolve, 1000));
-                // Then start it again
-                yield this.startServer(options);
-            }
-            catch (error) {
-                console.error('❌ Error restarting server:', error.message);
-            }
+    async generateMigration(options) {
+        console.log('🔄 Generating Migration Files...\n');
+        const provider = options.database || 'better-auth';
+        const outputPath = options.output || './dist/auth';
+        if (!fs.existsSync(outputPath)) {
+            fs.mkdirSync(outputPath, { recursive: true });
+        }
+        const supportedProviders = [
+            'clerk',
+            'better-auth',
+            'auth0',
+            'firebase',
+            'supabase',
+        ];
+        if (!supportedProviders.includes(provider)) {
+            console.error(`❌ Unsupported provider: ${provider}`);
+            console.log(`💡 Supported providers: ${supportedProviders.join(', ')}`);
+            process.exit(1);
+        }
+        console.log(`📝 Generating migration for: ${provider}`);
+        console.log(`📁 Output directory: ${outputPath}`);
+        // Generate migration files based on provider
+        const migrationFiles = this.generateMigrationFiles(provider, outputPath);
+        console.log('\n✅ Migration files generated:');
+        migrationFiles.forEach((file) => {
+            console.log(`   • ${file}`);
         });
-    }
-    resetServer(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔄 Resetting MockAuth server...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                // Stop server if running
-                yield this.stopServer(options);
-                // Clear database/data files
-                console.log('🗑️  Clearing server data...');
-                yield this.clearServerData(config);
-                // Restart server
-                console.log('🚀 Starting fresh server...');
-                yield this.startServer(options);
-                console.log('✅ MockAuth server reset successfully');
-            }
-            catch (error) {
-                console.error('❌ Error resetting server:', error.message);
-            }
-        });
-    }
-    checkServerStatus(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('📊 Checking MockAuth server status...\n');
-            try {
-                const config = this.loadConfig(options.config);
-                const port = options.port || config.port;
-                // Check if server is running
-                const serverProcess = yield this.findServerProcess(port);
-                if (serverProcess) {
-                    console.log('✅ Server Status: Running');
-                    console.log(`📡 Port: ${port}`);
-                    console.log(`🆔 Process ID: ${serverProcess.pid}`);
-                    console.log(`🔗 URL: ${config.baseUrl}`);
-                    // Test server health
-                    const isHealthy = yield this.testServerHealth(config.baseUrl);
-                    console.log(`💚 Health: ${isHealthy ? 'Healthy' : 'Unhealthy'}`);
-                    if (isHealthy) {
-                        console.log('\n📚 Available endpoints:');
-                        console.log('   • Health: /health');
-                        console.log('   • API Docs: /api');
-                        console.log('   • Login: POST /auth/login');
-                        console.log('   • Users: GET /users');
-                    }
-                }
-                else {
-                    console.log('❌ Server Status: Not Running');
-                    console.log(`📡 Port ${port} is available`);
-                    console.log('💡 Run "mockauth start" to start the server');
-                }
-            }
-            catch (error) {
-                console.error('❌ Error checking server status:', error.message);
-            }
-        });
-    }
-    listServers(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('📋 Listing all MockAuth servers...\n');
-            try {
-                const runningServers = yield this.findAllMockAuthServers();
-                if (runningServers.length === 0) {
-                    console.log('ℹ️  No MockAuth servers currently running');
-                    console.log('💡 Run "mockauth start" to start a server');
-                    return;
-                }
-                console.log(`Found ${runningServers.length} MockAuth server(s):\n`);
-                runningServers.forEach((server, index) => {
-                    console.log(`${index + 1}. MockAuth Server`);
-                    console.log(`   📡 Port: ${server.port}`);
-                    console.log(`   🆔 PID: ${server.pid}`);
-                    console.log(`   🔗 URL: http://localhost:${server.port}`);
-                    console.log(`   ⏰ Started: ${server.startTime}`);
-                    console.log('');
-                });
-                console.log('💡 Use "mockauth stop --port <port>" to stop a specific server');
-                console.log('💡 Use "mockauth kill-all" to stop all servers');
-            }
-            catch (error) {
-                console.error('❌ Error listing servers:', error.message);
-            }
-        });
-    }
-    killAllServers(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('💀 Stopping all MockAuth servers...\n');
-            try {
-                const runningServers = yield this.findAllMockAuthServers();
-                if (runningServers.length === 0) {
-                    console.log('ℹ️  No MockAuth servers currently running');
-                    return;
-                }
-                console.log(`Found ${runningServers.length} server(s) to stop:\n`);
-                for (const server of runningServers) {
-                    console.log(`🛑 Stopping server on port ${server.port} (PID: ${server.pid})...`);
-                    try {
-                        // Graceful shutdown
-                        process.kill(server.pid, 'SIGTERM');
-                        // Wait for graceful shutdown
-                        yield new Promise((resolve) => setTimeout(resolve, 2000));
-                        // Force kill if still running
-                        try {
-                            process.kill(server.pid, 'SIGKILL');
-                        }
-                        catch (error) {
-                            // Process already stopped
-                        }
-                        console.log(`✅ Server on port ${server.port} stopped`);
-                    }
-                    catch (error) {
-                        console.log(`⚠️  Could not stop server on port ${server.port}: ${error.message}`);
-                    }
-                }
-                console.log('\n✅ All MockAuth servers stopped');
-            }
-            catch (error) {
-                console.error('❌ Error stopping servers:', error.message);
-            }
-        });
-    }
-    generateMigration(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('🔄 Generating Migration Files...\n');
-            const provider = options.database || 'better-auth';
-            const outputPath = options.output || './src/auth';
-            if (!fs.existsSync(outputPath)) {
-                fs.mkdirSync(outputPath, { recursive: true });
-            }
-            const supportedProviders = [
-                'clerk',
-                'better-auth',
-                'auth0',
-                'firebase',
-                'supabase',
-            ];
-            if (!supportedProviders.includes(provider)) {
-                console.error(`❌ Unsupported provider: ${provider}`);
-                console.log(`💡 Supported providers: ${supportedProviders.join(', ')}`);
-                process.exit(1);
-            }
-            console.log(`📝 Generating migration for: ${provider}`);
-            console.log(`📁 Output directory: ${outputPath}`);
-            // Generate migration files based on provider
-            const migrationFiles = this.generateMigrationFiles(provider, outputPath);
-            console.log('\n✅ Migration files generated:');
-            migrationFiles.forEach((file) => {
-                console.log(`   • ${file}`);
-            });
-            console.log('\n📚 Next steps:');
-            console.log('   1. Review the generated files');
-            console.log('   2. Install the required dependencies');
-            console.log('   3. Configure environment variables');
-            console.log('   4. Test the migration');
-            console.log('   5. Deploy to production');
-            console.log('\n🧪 Test your migration:');
-            console.log(`   npx mockauth test-migration --from mockauth --to ${provider}`);
-        });
+        console.log('\n📚 Next steps:');
+        console.log('   1. Review the generated files');
+        console.log('   2. Install the required dependencies');
+        console.log('   3. Configure environment variables');
+        console.log('   4. Test the migration');
+        console.log('   5. Deploy to production');
+        console.log('\n🧪 Test your migration:');
+        console.log(`   npx mockauth test-migration --from mockauth --to ${provider}`);
     }
     // Server Management Helper Methods
-    findServerProcess(port) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { exec } = require('child_process');
-                const { promisify } = require('util');
-                const execAsync = promisify(exec);
-                // Find process using the port
-                const { stdout } = yield execAsync(`netstat -ano | findstr :${port}`);
-                if (stdout.trim()) {
-                    const lines = stdout.trim().split('\n');
-                    for (const line of lines) {
-                        if (line.includes(`:${port}`) && line.includes('LISTENING')) {
-                            const parts = line.trim().split(/\s+/);
-                            const pid = parseInt(parts[parts.length - 1]);
-                            if (pid && pid > 0) {
-                                return { pid, port };
-                            }
+    async findServerProcess(port) {
+        try {
+            const { exec } = require('child_process');
+            const { promisify } = require('util');
+            const execAsync = promisify(exec);
+            // Find process using the port
+            const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
+            if (stdout.trim()) {
+                const lines = stdout.trim().split('\n');
+                for (const line of lines) {
+                    if (line.includes(`:${port}`) && line.includes('LISTENING')) {
+                        const parts = line.trim().split(/\s+/);
+                        const pid = parseInt(parts[parts.length - 1]);
+                        if (pid && pid > 0) {
+                            return { pid, port };
                         }
                     }
                 }
-                return null;
             }
-            catch (error) {
-                return null;
-            }
-        });
+            return null;
+        }
+        catch (error) {
+            return null;
+        }
     }
-    findAllMockAuthServers() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { exec } = require('child_process');
-                const { promisify } = require('util');
-                const execAsync = promisify(exec);
-                const servers = [];
-                // Find all Node.js processes
-                const { stdout } = yield execAsync('tasklist /FI "IMAGENAME eq node.exe" /FO CSV');
-                if (stdout.trim()) {
-                    const lines = stdout.trim().split('\n').slice(1); // Skip header
-                    for (const line of lines) {
-                        const parts = line.split(',').map((part) => part.replace(/"/g, ''));
-                        if (parts.length >= 2) {
-                            const pid = parseInt(parts[1]);
-                            if (pid && pid > 0) {
-                                // Check if this process is using a port (simplified check)
-                                try {
-                                    const { stdout: netstat } = yield execAsync(`netstat -ano | findstr ${pid}`);
-                                    if (netstat.trim()) {
-                                        const portMatch = netstat.match(/:(\d+).*LISTENING/);
-                                        if (portMatch) {
-                                            const port = parseInt(portMatch[1]);
-                                            if (port >= 3000 && port <= 9999) {
-                                                // Likely a MockAuth port
-                                                servers.push({
-                                                    pid,
-                                                    port,
-                                                    startTime: new Date().toISOString(),
-                                                });
-                                            }
+    async findAllMockAuthServers() {
+        try {
+            const { exec } = require('child_process');
+            const { promisify } = require('util');
+            const execAsync = promisify(exec);
+            const servers = [];
+            // Find all Node.js processes
+            const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq node.exe" /FO CSV');
+            if (stdout.trim()) {
+                const lines = stdout.trim().split('\n').slice(1); // Skip header
+                for (const line of lines) {
+                    const parts = line.split(',').map((part) => part.replace(/"/g, ''));
+                    if (parts.length >= 2) {
+                        const pid = parseInt(parts[1]);
+                        if (pid && pid > 0) {
+                            // Check if this process is using a port (simplified check)
+                            try {
+                                const { stdout: netstat } = await execAsync(`netstat -ano | findstr ${pid}`);
+                                if (netstat.trim()) {
+                                    const portMatch = netstat.match(/:(\d+).*LISTENING/);
+                                    if (portMatch) {
+                                        const port = parseInt(portMatch[1]);
+                                        if (port >= 3000 && port <= 9999) {
+                                            // Likely a MockAuth port
+                                            servers.push({
+                                                pid,
+                                                port,
+                                                startTime: new Date().toISOString(),
+                                            });
                                         }
                                     }
                                 }
-                                catch (error) {
-                                    // Skip this process
-                                }
+                            }
+                            catch (error) {
+                                // Skip this process
                             }
                         }
                     }
                 }
-                return servers;
             }
-            catch (error) {
-                return [];
-            }
-        });
+            return servers;
+        }
+        catch (error) {
+            return [];
+        }
     }
-    testServerHealth(baseUrl) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Use built-in fetch (Node.js 18+) or fallback to http module
-                const response = yield fetch(`${baseUrl}/health`, {
-                    method: 'GET',
-                    signal: AbortSignal.timeout(5000),
-                });
-                return response.ok;
-            }
-            catch (error) {
-                return false;
-            }
-        });
+    async testServerHealth(baseUrl) {
+        try {
+            // Use built-in fetch (Node.js 18+) or fallback to http module
+            const response = await fetch(`${baseUrl}/health`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(5000),
+            });
+            return response.ok;
+        }
+        catch (error) {
+            return false;
+        }
     }
-    clearServerData(config) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            try {
-                // Clear database files based on type
-                if (((_a = config.database) === null || _a === void 0 ? void 0 : _a.type) === 'sqlite') {
-                    const dbPath = config.database.connectionString || './mockauth.db';
-                    if (fs.existsSync(dbPath)) {
-                        fs.unlinkSync(dbPath);
-                        console.log('🗑️  Cleared SQLite database');
-                    }
-                }
-                // Clear any cached data
-                const cacheDir = './.mockauth-cache';
-                if (fs.existsSync(cacheDir)) {
-                    fs.rmSync(cacheDir, { recursive: true, force: true });
-                    console.log('🗑️  Cleared cache directory');
-                }
-                // Clear session data
-                const sessionDir = './sessions';
-                if (fs.existsSync(sessionDir)) {
-                    fs.rmSync(sessionDir, { recursive: true, force: true });
-                    console.log('🗑️  Cleared session data');
+    async clearServerData(config) {
+        try {
+            // Clear database files based on type
+            if (config.database?.type === 'sqlite') {
+                const dbPath = config.database.connectionString || './mockauth.db';
+                if (fs.existsSync(dbPath)) {
+                    fs.unlinkSync(dbPath);
+                    console.log('🗑️  Cleared SQLite database');
                 }
             }
-            catch (error) {
-                console.log('⚠️  Some data could not be cleared:', error.message);
+            // Clear any cached data
+            const cacheDir = './.mockauth-cache';
+            if (fs.existsSync(cacheDir)) {
+                fs.rmSync(cacheDir, { recursive: true, force: true });
+                console.log('🗑️  Cleared cache directory');
             }
-        });
+            // Clear session data
+            const sessionDir = './sessions';
+            if (fs.existsSync(sessionDir)) {
+                fs.rmSync(sessionDir, { recursive: true, force: true });
+                console.log('🗑️  Cleared session data');
+            }
+        }
+        catch (error) {
+            console.log('⚠️  Some data could not be cleared:', error.message);
+        }
     }
-    performHealthChecks(auth) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const startTime = Date.now();
-            // Test server response
-            const serverCheck = yield this.testServerResponse(auth);
+    async performHealthChecks(auth) {
+        const startTime = Date.now();
+        // Test server response
+        const serverCheck = await this.testServerResponse(auth);
+        // Test database connection
+        const databaseCheck = await this.testDatabaseConnection(auth);
+        // Check memory usage
+        const memoryUsage = process.memoryUsage();
+        const memoryMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
+        const memoryStatus = memoryMB > 100 ? 'High' : memoryMB > 50 ? 'Normal' : 'Low';
+        // Test response time
+        const responseTime = Date.now() - startTime;
+        const performanceStatus = responseTime < 100 ? 'Excellent' : responseTime < 500 ? 'Good' : 'Slow';
+        // Get active sessions
+        const activeSessions = await this.getActiveSessions(auth);
+        // Generate warnings and suggestions
+        const warnings = [];
+        const suggestions = [];
+        if (memoryStatus === 'High') {
+            warnings.push('High memory usage detected');
+            suggestions.push('Consider restarting the server or optimizing configuration');
+        }
+        if (performanceStatus === 'Slow') {
+            warnings.push('Slow response time detected');
+            suggestions.push('Check database performance and server resources');
+        }
+        if (activeSessions > 100) {
+            warnings.push('High number of active sessions');
+            suggestions.push('Monitor session cleanup and consider session limits');
+        }
+        return {
+            server: serverCheck,
+            database: databaseCheck,
+            memory: memoryMB,
+            memoryStatus,
+            responseTime,
+            performanceStatus,
+            activeSessions,
+            warnings,
+            suggestions,
+        };
+    }
+    async testServerResponse(auth) {
+        try {
+            // Simple health check
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+    async testDatabaseConnection(auth) {
+        try {
             // Test database connection
-            const databaseCheck = yield this.testDatabaseConnection(auth);
-            // Check memory usage
-            const memoryUsage = process.memoryUsage();
-            const memoryMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
-            const memoryStatus = memoryMB > 100 ? 'High' : memoryMB > 50 ? 'Normal' : 'Low';
-            // Test response time
-            const responseTime = Date.now() - startTime;
-            const performanceStatus = responseTime < 100 ? 'Excellent' : responseTime < 500 ? 'Good' : 'Slow';
-            // Get active sessions
-            const activeSessions = yield this.getActiveSessions(auth);
-            // Generate warnings and suggestions
-            const warnings = [];
-            const suggestions = [];
-            if (memoryStatus === 'High') {
-                warnings.push('High memory usage detected');
-                suggestions.push('Consider restarting the server or optimizing configuration');
-            }
-            if (performanceStatus === 'Slow') {
-                warnings.push('Slow response time detected');
-                suggestions.push('Check database performance and server resources');
-            }
-            if (activeSessions > 100) {
-                warnings.push('High number of active sessions');
-                suggestions.push('Monitor session cleanup and consider session limits');
-            }
-            return {
-                server: serverCheck,
-                database: databaseCheck,
-                memory: memoryMB,
-                memoryStatus,
-                responseTime,
-                performanceStatus,
-                activeSessions,
-                warnings,
-                suggestions,
-            };
-        });
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
     }
-    testServerResponse(auth) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Simple health check
-                return true;
-            }
-            catch (error) {
-                return false;
-            }
-        });
-    }
-    testDatabaseConnection(auth) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Test database connection
-                return true;
-            }
-            catch (error) {
-                return false;
-            }
-        });
-    }
-    getActiveSessions(auth) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Get active session count
-                return 0;
-            }
-            catch (error) {
-                return 0;
-            }
-        });
+    async getActiveSessions(auth) {
+        try {
+            // Get active session count
+            return 0;
+        }
+        catch (error) {
+            return 0;
+        }
     }
     generateMigrationFiles(provider, outputPath) {
         const files = [];

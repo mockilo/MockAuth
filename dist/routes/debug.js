@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createDebugRoutes = void 0;
+exports.createDebugRoutes = createDebugRoutes;
 const express_1 = require("express");
 const performance_1 = require("../middleware/performance");
 function createDebugRoutes() {
@@ -151,5 +151,4 @@ function createDebugRoutes() {
     });
     return router;
 }
-exports.createDebugRoutes = createDebugRoutes;
 //# sourceMappingURL=debug.js.map

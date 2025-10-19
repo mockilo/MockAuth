@@ -1,22 +1,13 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createComplianceRoutes = void 0;
+exports.createComplianceRoutes = createComplianceRoutes;
 const express_1 = require("express");
 function createComplianceRoutes(complianceService) {
     const router = (0, express_1.Router)();
     /**
      * Log audit event
      */
-    router.post('/audit', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/audit', async (req, res) => {
         try {
             const { userId, action, resource, success, details, ipAddress, userAgent, } = req.body;
             if (!action || !resource) {
@@ -25,7 +16,7 @@ function createComplianceRoutes(complianceService) {
                     error: 'Action and resource are required',
                 });
             }
-            yield complianceService.logAuditEvent(userId, action, resource, success !== false, details, ipAddress, userAgent);
+            await complianceService.logAuditEvent(userId, action, resource, success !== false, details, ipAddress, userAgent);
             res.json({
                 success: true,
                 message: 'Audit event logged',
@@ -37,7 +28,7 @@ function createComplianceRoutes(complianceService) {
                 error: 'Failed to log audit event',
             });
         }
-    }));
+    });
     /**
      * Get compliance violations
      */
@@ -67,7 +58,7 @@ function createComplianceRoutes(complianceService) {
     /**
      * Resolve violation
      */
-    router.post('/violations/:id/resolve', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/violations/:id/resolve', async (req, res) => {
         try {
             const { id } = req.params;
             const { resolvedBy } = req.body;
@@ -77,7 +68,7 @@ function createComplianceRoutes(complianceService) {
                     error: 'ResolvedBy is required',
                 });
             }
-            const success = yield complianceService.resolveViolation(id, resolvedBy);
+            const success = await complianceService.resolveViolation(id, resolvedBy);
             if (success) {
                 res.json({
                     success: true,
@@ -97,7 +88,7 @@ function createComplianceRoutes(complianceService) {
                 error: 'Failed to resolve violation',
             });
         }
-    }));
+    });
     /**
      * Get audit logs
      */
@@ -130,7 +121,7 @@ function createComplianceRoutes(complianceService) {
     /**
      * Generate compliance report
      */
-    router.post('/reports', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/reports', async (req, res) => {
         try {
             const { type, startDate, endDate } = req.body;
             if (!type || !startDate || !endDate) {
@@ -139,7 +130,7 @@ function createComplianceRoutes(complianceService) {
                     error: 'Type, startDate, and endDate are required',
                 });
             }
-            const report = yield complianceService.generateComplianceReport(type, new Date(startDate), new Date(endDate));
+            const report = await complianceService.generateComplianceReport(type, new Date(startDate), new Date(endDate));
             res.json({
                 success: true,
                 data: report,
@@ -151,7 +142,7 @@ function createComplianceRoutes(complianceService) {
                 error: 'Failed to generate report',
             });
         }
-    }));
+    });
     /**
      * Create compliance rule
      */
@@ -172,5 +163,4 @@ function createComplianceRoutes(complianceService) {
     });
     return router;
 }
-exports.createComplianceRoutes = createComplianceRoutes;
 //# sourceMappingURL=compliance.js.map

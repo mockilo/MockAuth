@@ -1,15 +1,7 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAdvancedRBACService = exports.AdvancedRBACService = void 0;
+exports.AdvancedRBACService = void 0;
+exports.createAdvancedRBACService = createAdvancedRBACService;
 class AdvancedRBACService {
     constructor(config) {
         this.permissions = new Map();
@@ -23,142 +15,136 @@ class AdvancedRBACService {
     /**
      * Check if user has permission to perform action on resource
      */
-    checkPermission(user, action, resource, context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const resourceObj = typeof resource === 'string' ? this.resources.get(resource) : resource;
-            if (!resourceObj) {
-                return {
-                    allowed: false,
-                    reason: 'Resource not found',
-                    matchedPolicies: [],
-                    matchedRoles: [],
-                    matchedPermissions: [],
-                };
-            }
-            // Check policies first (highest priority)
-            if (this.config.enablePolicyEngine) {
-                const policyDecision = yield this.evaluatePolicies(user, action, resourceObj, context);
-                if (policyDecision.allowed !== null) {
-                    return policyDecision;
-                }
-            }
-            // Check role-based permissions
-            const roleDecision = yield this.evaluateRoles(user, action, resourceObj, context);
-            if (roleDecision.allowed) {
-                return roleDecision;
-            }
-            // Check resource ownership
-            if (this.config.enableResourceOwnership && resourceObj.owner === user.id) {
-                return {
-                    allowed: true,
-                    reason: 'Resource owner',
-                    matchedPolicies: [],
-                    matchedRoles: [],
-                    matchedPermissions: ['owner'],
-                };
-            }
+    async checkPermission(user, action, resource, context) {
+        const resourceObj = typeof resource === 'string' ? this.resources.get(resource) : resource;
+        if (!resourceObj) {
             return {
-                allowed: this.config.defaultDeny ? false : true,
-                reason: this.config.defaultDeny
-                    ? 'Default deny policy'
-                    : 'Default allow policy',
+                allowed: false,
+                reason: 'Resource not found',
                 matchedPolicies: [],
                 matchedRoles: [],
                 matchedPermissions: [],
             };
-        });
+        }
+        // Check policies first (highest priority)
+        if (this.config.enablePolicyEngine) {
+            const policyDecision = await this.evaluatePolicies(user, action, resourceObj, context);
+            if (policyDecision.allowed !== null) {
+                return policyDecision;
+            }
+        }
+        // Check role-based permissions
+        const roleDecision = await this.evaluateRoles(user, action, resourceObj, context);
+        if (roleDecision.allowed) {
+            return roleDecision;
+        }
+        // Check resource ownership
+        if (this.config.enableResourceOwnership && resourceObj.owner === user.id) {
+            return {
+                allowed: true,
+                reason: 'Resource owner',
+                matchedPolicies: [],
+                matchedRoles: [],
+                matchedPermissions: ['owner'],
+            };
+        }
+        return {
+            allowed: this.config.defaultDeny ? false : true,
+            reason: this.config.defaultDeny
+                ? 'Default deny policy'
+                : 'Default allow policy',
+            matchedPolicies: [],
+            matchedRoles: [],
+            matchedPermissions: [],
+        };
     }
     /**
      * Evaluate policies for access decision
      */
-    evaluatePolicies(user, action, resource, context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sortedPolicies = Array.from(this.policies.values())
-                .filter((p) => p.enabled)
-                .sort((a, b) => b.priority - a.priority);
-            for (const policy of sortedPolicies) {
-                for (const rule of policy.rules) {
-                    if (this.matchesRule(user, action, resource, rule, context)) {
-                        return {
-                            allowed: rule.effect === 'allow',
-                            reason: `Policy: ${policy.name}`,
-                            matchedPolicies: [policy.id],
-                            matchedRoles: [],
-                            matchedPermissions: [],
-                        };
-                    }
+    async evaluatePolicies(user, action, resource, context) {
+        const sortedPolicies = Array.from(this.policies.values())
+            .filter((p) => p.enabled)
+            .sort((a, b) => b.priority - a.priority);
+        for (const policy of sortedPolicies) {
+            for (const rule of policy.rules) {
+                if (this.matchesRule(user, action, resource, rule, context)) {
+                    return {
+                        allowed: rule.effect === 'allow',
+                        reason: `Policy: ${policy.name}`,
+                        matchedPolicies: [policy.id],
+                        matchedRoles: [],
+                        matchedPermissions: [],
+                    };
                 }
             }
-            return {
-                allowed: null,
-                reason: 'No policy matched',
-                matchedPolicies: [],
-                matchedRoles: [],
-                matchedPermissions: [],
-            };
-        });
+        }
+        return {
+            allowed: null,
+            reason: 'No policy matched',
+            matchedPolicies: [],
+            matchedRoles: [],
+            matchedPermissions: [],
+        };
     }
     /**
      * Evaluate role-based permissions
      */
-    evaluateRoles(user, action, resource, context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const userRoles = yield this.getUserRoles(user);
-            const matchedRoles = [];
-            const matchedPermissions = [];
-            for (const roleId of userRoles) {
-                const role = this.roles.get(roleId);
-                if (!role)
+    async evaluateRoles(user, action, resource, context) {
+        const userRoles = await this.getUserRoles(user);
+        const matchedRoles = [];
+        const matchedPermissions = [];
+        for (const roleId of userRoles) {
+            const role = this.roles.get(roleId);
+            if (!role)
+                continue;
+            matchedRoles.push(roleId);
+            // Check direct permissions
+            for (const permissionId of role.permissions) {
+                const permission = this.permissions.get(permissionId);
+                if (!permission)
                     continue;
-                matchedRoles.push(roleId);
-                // Check direct permissions
-                for (const permissionId of role.permissions) {
-                    const permission = this.permissions.get(permissionId);
-                    if (!permission)
-                        continue;
-                    if (this.matchesPermission(permission, action, resource, context)) {
-                        matchedPermissions.push(permissionId);
-                        return {
-                            allowed: true,
-                            reason: `Role: ${role.name}`,
-                            matchedPolicies: [],
-                            matchedRoles: [roleId],
-                            matchedPermissions: [permissionId],
-                        };
-                    }
+                if (this.matchesPermission(permission, action, resource, context)) {
+                    matchedPermissions.push(permissionId);
+                    return {
+                        allowed: true,
+                        reason: `Role: ${role.name}`,
+                        matchedPolicies: [],
+                        matchedRoles: [roleId],
+                        matchedPermissions: [permissionId],
+                    };
                 }
-                // Check inherited roles
-                if (this.config.enableHierarchicalRoles && role.inherits) {
-                    for (const inheritedRoleId of role.inherits) {
-                        const inheritedRole = this.roles.get(inheritedRoleId);
-                        if (!inheritedRole)
+            }
+            // Check inherited roles
+            if (this.config.enableHierarchicalRoles && role.inherits) {
+                for (const inheritedRoleId of role.inherits) {
+                    const inheritedRole = this.roles.get(inheritedRoleId);
+                    if (!inheritedRole)
+                        continue;
+                    for (const permissionId of inheritedRole.permissions) {
+                        const permission = this.permissions.get(permissionId);
+                        if (!permission)
                             continue;
-                        for (const permissionId of inheritedRole.permissions) {
-                            const permission = this.permissions.get(permissionId);
-                            if (!permission)
-                                continue;
-                            if (this.matchesPermission(permission, action, resource, context)) {
-                                matchedPermissions.push(permissionId);
-                                return {
-                                    allowed: true,
-                                    reason: `Inherited role: ${inheritedRole.name}`,
-                                    matchedPolicies: [],
-                                    matchedRoles: [roleId, inheritedRoleId],
-                                    matchedPermissions: [permissionId],
-                                };
-                            }
+                        if (this.matchesPermission(permission, action, resource, context)) {
+                            matchedPermissions.push(permissionId);
+                            return {
+                                allowed: true,
+                                reason: `Inherited role: ${inheritedRole.name}`,
+                                matchedPolicies: [],
+                                matchedRoles: [roleId, inheritedRoleId],
+                                matchedPermissions: [permissionId],
+                            };
                         }
                     }
                 }
             }
-            return {
-                allowed: false,
-                reason: 'No matching permissions found',
-                matchedPolicies: [],
-                matchedRoles: matchedRoles,
-                matchedPermissions: matchedPermissions,
-            };
-        });
+        }
+        return {
+            allowed: false,
+            reason: 'No matching permissions found',
+            matchedPolicies: [],
+            matchedRoles: matchedRoles,
+            matchedPermissions: matchedPermissions,
+        };
     }
     /**
      * Check if rule matches user, action, and resource
@@ -255,7 +241,7 @@ class AdvancedRBACService {
      */
     evaluateConditions(conditions, context) {
         return conditions.every((condition) => {
-            const value = context === null || context === void 0 ? void 0 : context[condition.field];
+            const value = context?.[condition.field];
             switch (condition.operator) {
                 case 'equals':
                     return value === condition.value;
@@ -279,41 +265,39 @@ class AdvancedRBACService {
     /**
      * Get all roles for a user (including inherited)
      */
-    getUserRoles(user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const allRoles = new Set();
-            // Add direct roles
-            for (const roleName of user.roles) {
-                const role = Array.from(this.roles.values()).find((r) => r.name === roleName);
-                if (role) {
-                    allRoles.add(role.id);
-                }
+    async getUserRoles(user) {
+        const allRoles = new Set();
+        // Add direct roles
+        for (const roleName of user.roles) {
+            const role = Array.from(this.roles.values()).find((r) => r.name === roleName);
+            if (role) {
+                allRoles.add(role.id);
             }
-            // Add inherited roles
-            if (this.config.enableHierarchicalRoles) {
-                const rolesToProcess = Array.from(allRoles);
-                while (rolesToProcess.length > 0) {
-                    const roleId = rolesToProcess.pop();
-                    const role = this.roles.get(roleId);
-                    if (role === null || role === void 0 ? void 0 : role.inherits) {
-                        for (const inheritedRoleId of role.inherits) {
-                            if (!allRoles.has(inheritedRoleId)) {
-                                allRoles.add(inheritedRoleId);
-                                rolesToProcess.push(inheritedRoleId);
-                            }
+        }
+        // Add inherited roles
+        if (this.config.enableHierarchicalRoles) {
+            const rolesToProcess = Array.from(allRoles);
+            while (rolesToProcess.length > 0) {
+                const roleId = rolesToProcess.pop();
+                const role = this.roles.get(roleId);
+                if (role?.inherits) {
+                    for (const inheritedRoleId of role.inherits) {
+                        if (!allRoles.has(inheritedRoleId)) {
+                            allRoles.add(inheritedRoleId);
+                            rolesToProcess.push(inheritedRoleId);
                         }
                     }
                 }
             }
-            return Array.from(allRoles);
-        });
+        }
+        return Array.from(allRoles);
     }
     /**
      * Create a new permission
      */
     createPermission(permission) {
         const id = `perm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newPermission = Object.assign(Object.assign({}, permission), { id });
+        const newPermission = { ...permission, id };
         this.permissions.set(id, newPermission);
         return newPermission;
     }
@@ -322,7 +306,7 @@ class AdvancedRBACService {
      */
     createRole(role) {
         const id = `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newRole = Object.assign(Object.assign({}, role), { id });
+        const newRole = { ...role, id };
         this.roles.set(id, newRole);
         return newRole;
     }
@@ -331,7 +315,7 @@ class AdvancedRBACService {
      */
     createPolicy(policy) {
         const id = `policy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newPolicy = Object.assign(Object.assign({}, policy), { id });
+        const newPolicy = { ...policy, id };
         this.policies.set(id, newPolicy);
         return newPolicy;
     }
@@ -340,7 +324,7 @@ class AdvancedRBACService {
      */
     createResource(resource) {
         const id = `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const newResource = Object.assign(Object.assign({}, resource), { id });
+        const newResource = { ...resource, id };
         this.resources.set(id, newResource);
         return newResource;
     }
@@ -398,5 +382,4 @@ exports.AdvancedRBACService = AdvancedRBACService;
 function createAdvancedRBACService(config) {
     return new AdvancedRBACService(config);
 }
-exports.createAdvancedRBACService = createAdvancedRBACService;
 //# sourceMappingURL=AdvancedRBACService.js.map

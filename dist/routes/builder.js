@@ -1,26 +1,17 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createBuilderRoutes = void 0;
+exports.createBuilderRoutes = createBuilderRoutes;
 const express_1 = require("express");
 // In-memory storage for configurations (in production, use database)
 let savedConfiguration = null;
 function createBuilderRoutes(mockAuthInstance) {
     const router = (0, express_1.Router)();
     // Get current stats from the running MockAuth instance
-    router.get('/stats', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get('/stats', async (req, res) => {
         try {
-            const stats = yield mockAuthInstance.getStats();
+            const stats = await mockAuthInstance.getStats();
             const userService = mockAuthInstance.getUserService();
-            const users = yield userService.getAllUsers();
+            const users = await userService.getAllUsers();
             res.json({
                 success: true,
                 data: {
@@ -37,7 +28,7 @@ function createBuilderRoutes(mockAuthInstance) {
                 error: error.message,
             });
         }
-    }));
+    });
     // Save configuration
     router.post('/config/save', (req, res) => {
         try {
@@ -91,7 +82,7 @@ function createBuilderRoutes(mockAuthInstance) {
         }
     });
     // Bulk create users from builder
-    router.post('/users/bulk', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.post('/users/bulk', async (req, res) => {
         try {
             const { users } = req.body;
             // Validate users array
@@ -106,7 +97,7 @@ function createBuilderRoutes(mockAuthInstance) {
             const errors = [];
             for (const userData of users) {
                 try {
-                    const user = yield userService.createUser({
+                    const user = await userService.createUser({
                         email: userData.email,
                         username: userData.email.split('@')[0],
                         password: userData.password,
@@ -137,12 +128,12 @@ function createBuilderRoutes(mockAuthInstance) {
                 error: error.message,
             });
         }
-    }));
+    });
     // Get all users
-    router.get('/users', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get('/users', async (req, res) => {
         try {
             const userService = mockAuthInstance.getUserService();
-            const users = yield userService.getAllUsers();
+            const users = await userService.getAllUsers();
             res.json({
                 success: true,
                 data: users.map((u) => ({
@@ -160,7 +151,7 @@ function createBuilderRoutes(mockAuthInstance) {
                 error: error.message,
             });
         }
-    }));
+    });
     // Test endpoint connectivity
     router.get('/test', (req, res) => {
         res.json({
@@ -171,5 +162,4 @@ function createBuilderRoutes(mockAuthInstance) {
     });
     return router;
 }
-exports.createBuilderRoutes = createBuilderRoutes;
 //# sourceMappingURL=builder.js.map

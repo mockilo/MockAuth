@@ -674,7 +674,7 @@ USAGE:
 
 📚 NEED HELP?
   Documentation:  https://mockauth.dev/docs
-  GitHub Issues:  https://github.com/mockauth/mockauth
+  GitHub Issues:  https://github.com/mockilo/mockauth
   Discord:        https://discord.gg/mockauth
 
 💡 Tip: Run mockauth <command> --help for detailed info about a specific command
@@ -1140,7 +1140,7 @@ testMockAuth().catch(console.error);`;
     const { spawn } = require('child_process');
     const builder = spawn(
       'node',
-      ['src/web-builder/server.js', '--port', port.toString()],
+      ['dist/web-builder/server.js', '--port', port.toString()],
       {
         stdio: 'inherit',
       }
@@ -1445,7 +1445,7 @@ testMockAuth().catch(console.error);`;
     console.log('🔄 Generating Migration Files...\n');
 
     const provider = options.database || 'better-auth';
-    const outputPath = options.output || './src/auth';
+    const outputPath = options.output || './dist/auth';
 
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath, { recursive: true });

@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCacheStats = exports.clearAllCache = exports.invalidateCache = exports.cacheMiddleware = void 0;
+exports.cacheMiddleware = cacheMiddleware;
+exports.invalidateCache = invalidateCache;
+exports.clearAllCache = clearAllCache;
+exports.getCacheStats = getCacheStats;
 const CacheService_1 = require("../services/CacheService");
 const cacheService = CacheService_1.CacheService.getInstance();
 function cacheMiddleware(options = {}) {
@@ -38,7 +41,6 @@ function cacheMiddleware(options = {}) {
         next();
     };
 }
-exports.cacheMiddleware = cacheMiddleware;
 function defaultKeyGenerator(req) {
     const { method, path, query } = req;
     const queryString = Object.keys(query).length > 0
@@ -55,13 +57,10 @@ function invalidateCache(pattern) {
         }
     });
 }
-exports.invalidateCache = invalidateCache;
 function clearAllCache() {
     cacheService.clear();
 }
-exports.clearAllCache = clearAllCache;
 function getCacheStats() {
     return cacheService.getStats();
 }
-exports.getCacheStats = getCacheStats;
 //# sourceMappingURL=caching.js.map

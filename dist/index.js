@@ -15,24 +15,25 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -70,7 +71,6 @@ const performance_1 = require("./middleware/performance");
 // TypeScript service refresh comment
 class MockAuth {
     constructor(config) {
-        var _a, _b;
         this.ssoService = null;
         this.rbacService = null;
         this.complianceService = null;
@@ -82,8 +82,8 @@ class MockAuth {
         this.webhookService = (0, WebhookService_1.createWebhookService)(config.webhooks);
         this.auditService = (0, AuditService_1.createAuditService)(config.enableAuditLog);
         this.ecosystemService = (0, EcosystemService_1.createEcosystemService)({
-            mocktail: ((_a = config.ecosystem) === null || _a === void 0 ? void 0 : _a.mocktail) || { enabled: false },
-            schemaghost: ((_b = config.ecosystem) === null || _b === void 0 ? void 0 : _b.schemaghost) || { enabled: false },
+            mocktail: config.ecosystem?.mocktail || { enabled: false },
+            schemaghost: config.ecosystem?.schemaghost || { enabled: false },
         });
         this.databaseService = (0, DatabaseService_1.createDatabaseService)(config.database || { type: 'memory' });
         // Initialize enterprise services
@@ -114,23 +114,37 @@ class MockAuth {
         if (!config.port) {
             throw new Error('Port is required');
         }
-        return Object.assign({ tokenExpiry: '24h', refreshTokenExpiry: '7d', enableMFA: false, enablePasswordReset: true, enableAccountLockout: true, logLevel: 'info', enableAuditLog: true, maxLoginAttempts: 5, lockoutDuration: '15m', passwordPolicy: {
+        return {
+            tokenExpiry: '24h',
+            refreshTokenExpiry: '7d',
+            enableMFA: false,
+            enablePasswordReset: true,
+            enableAccountLockout: true,
+            logLevel: 'info',
+            enableAuditLog: true,
+            maxLoginAttempts: 5,
+            lockoutDuration: '15m',
+            passwordPolicy: {
                 minLength: 8,
                 requireUppercase: true,
                 requireNumbers: true,
                 requireSpecialChars: false,
-            }, cors: {
+            },
+            cors: {
                 origin: true,
                 credentials: true,
                 methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
                 allowedHeaders: ['Content-Type', 'Authorization'],
-            }, rateLimit: {
+            },
+            rateLimit: {
                 windowMs: 15 * 60 * 1000, // 15 minutes
                 max: 1000, // limit each IP to 1000 requests per windowMs
                 message: 'Too many requests from this IP, please try again later.',
                 standardHeaders: true,
                 legacyHeaders: false,
-            } }, config);
+            },
+            ...config,
+        };
     }
     setupMiddleware() {
         // Security middleware
@@ -215,8 +229,8 @@ class MockAuth {
     }
     setupWebInterface() {
         // Serve your existing HTML files from web-builder directory
-        // The web-builder files are in the source directory, not dist
-        const webBuilderPath = path.join(__dirname, '..', 'src', 'web-builder');
+        // The web-builder files are copied to dist during build
+        const webBuilderPath = path.join(__dirname, 'web-builder');
         // Serve static files (JS, CSS, images) from web-builder directory
         this.app.use(express_1.default.static(webBuilderPath));
         this.app.get('/', (req, res) => {
@@ -257,84 +271,79 @@ class MockAuth {
     setupErrorHandling() {
         this.app.use(errorHandler_1.errorHandler);
     }
-    start() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+    async start() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Initialize database first
+                await this.databaseService.connect();
+                // Initialize ecosystem services (non-blocking)
                 try {
-                    // Initialize database first
-                    yield this.databaseService.connect();
-                    // Initialize ecosystem services (non-blocking)
-                    try {
-                        yield this.ecosystemService.initialize();
-                    }
-                    catch (error) {
-                        console.warn('⚠️ Some ecosystem services failed to start, but MockAuth will continue');
-                        console.log('💡 You can check the logs above for specific service issues');
-                    }
-                    this.server = this.app.listen(this.config.port, this.config.host || 'localhost', () => {
-                        var _a, _b, _c, _d;
-                        console.log(`🚀 MockAuth server running on http://${this.config.host || 'localhost'}:${this.config.port}`);
-                        console.log(`📚 API Documentation: ${this.config.baseUrl}/api`);
-                        console.log(`❤️  Health Check: ${this.config.baseUrl}/health`);
-                        // Log ecosystem status
-                        if ((_b = (_a = this.config.ecosystem) === null || _a === void 0 ? void 0 : _a.mocktail) === null || _b === void 0 ? void 0 : _b.enabled) {
-                            console.log(`🎭 MockTail: Mock data generation enabled`);
-                        }
-                        if ((_d = (_c = this.config.ecosystem) === null || _c === void 0 ? void 0 : _c.schemaghost) === null || _d === void 0 ? void 0 : _d.enabled) {
-                            console.log(`👻 SchemaGhost: Mock API server enabled`);
-                        }
-                        // Start cleanup interval for expired sessions with error handling
-                        this.cleanupInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                            try {
-                                const cleaned = yield this.authService.cleanupExpiredSessions();
-                                if (cleaned > 0) {
-                                    console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
-                                }
-                            }
-                            catch (error) {
-                                console.error('❌ Session cleanup failed:', error);
-                            }
-                        }), 5 * 60 * 1000); // Every 5 minutes
-                        resolve();
-                    });
-                    this.server.on('error', (error) => {
-                        if (error.code === 'EADDRINUSE') {
-                            reject(new Error(`Port ${this.config.port} is already in use`));
-                        }
-                        else {
-                            reject(error);
-                        }
-                    });
+                    await this.ecosystemService.initialize();
                 }
                 catch (error) {
-                    reject(error);
+                    console.warn('⚠️ Some ecosystem services failed to start, but MockAuth will continue');
+                    console.log('💡 You can check the logs above for specific service issues');
                 }
-            }));
+                this.server = this.app.listen(this.config.port, this.config.host || 'localhost', () => {
+                    console.log(`🚀 MockAuth server running on http://${this.config.host || 'localhost'}:${this.config.port}`);
+                    console.log(`📚 API Documentation: ${this.config.baseUrl}/api`);
+                    console.log(`❤️  Health Check: ${this.config.baseUrl}/health`);
+                    // Log ecosystem status
+                    if (this.config.ecosystem?.mocktail?.enabled) {
+                        console.log(`🎭 MockTail: Mock data generation enabled`);
+                    }
+                    if (this.config.ecosystem?.schemaghost?.enabled) {
+                        console.log(`👻 SchemaGhost: Mock API server enabled`);
+                    }
+                    // Start cleanup interval for expired sessions with error handling
+                    this.cleanupInterval = setInterval(async () => {
+                        try {
+                            const cleaned = await this.authService.cleanupExpiredSessions();
+                            if (cleaned > 0) {
+                                console.log(`🧹 Cleaned up ${cleaned} expired sessions`);
+                            }
+                        }
+                        catch (error) {
+                            console.error('❌ Session cleanup failed:', error);
+                        }
+                    }, 5 * 60 * 1000); // Every 5 minutes
+                    resolve();
+                });
+                this.server.on('error', (error) => {
+                    if (error.code === 'EADDRINUSE') {
+                        reject(new Error(`Port ${this.config.port} is already in use`));
+                    }
+                    else {
+                        reject(error);
+                    }
+                });
+            }
+            catch (error) {
+                reject(error);
+            }
         });
     }
-    stop() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                // Clear cleanup interval to prevent memory leaks
-                if (this.cleanupInterval) {
-                    clearInterval(this.cleanupInterval);
-                    this.cleanupInterval = null;
-                    console.log('🧹 Cleanup interval cleared');
-                }
-                // Stop ecosystem services first
-                yield this.ecosystemService.stop();
-                // Disconnect from database
-                yield this.databaseService.disconnect();
-                if (this.server) {
-                    this.server.close(() => {
-                        console.log('🛑 MockAuth server stopped');
-                        resolve();
-                    });
-                }
-                else {
+    async stop() {
+        return new Promise(async (resolve) => {
+            // Clear cleanup interval to prevent memory leaks
+            if (this.cleanupInterval) {
+                clearInterval(this.cleanupInterval);
+                this.cleanupInterval = null;
+                console.log('🧹 Cleanup interval cleared');
+            }
+            // Stop ecosystem services first
+            await this.ecosystemService.stop();
+            // Disconnect from database
+            await this.databaseService.disconnect();
+            if (this.server) {
+                this.server.close(() => {
+                    console.log('🛑 MockAuth server stopped');
                     resolve();
-                }
-            }));
+                });
+            }
+            else {
+                resolve();
+            }
         });
     }
     // Public API methods
@@ -345,7 +354,7 @@ class MockAuth {
         return this.authService;
     }
     getConfig() {
-        return Object.assign({}, this.config);
+        return { ...this.config };
     }
     getEcosystemService() {
         return this.ecosystemService;
@@ -353,56 +362,46 @@ class MockAuth {
     getDatabaseService() {
         return this.databaseService;
     }
-    createUser(userData) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.userService.createUser(userData);
-        });
+    async createUser(userData) {
+        return this.userService.createUser(userData);
     }
-    login(email, password) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield this.authService.login({
-                email,
-                password,
-                device: 'MockAuth API',
-                ipAddress: '127.0.0.1',
-                userAgent: 'MockAuth/1.0.0',
-            });
-            return {
-                user: response.user,
-                token: response.token,
-                refreshToken: response.refreshToken,
-                expiresIn: response.expiresIn,
-            };
+    async login(email, password) {
+        const response = await this.authService.login({
+            email,
+            password,
+            device: 'MockAuth API',
+            ipAddress: '127.0.0.1',
+            userAgent: 'MockAuth/1.0.0',
         });
+        return {
+            user: response.user,
+            token: response.token,
+            refreshToken: response.refreshToken,
+            expiresIn: response.expiresIn,
+        };
     }
-    verifyToken(token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.authService.verifyToken(token);
-        });
+    async verifyToken(token) {
+        return this.authService.verifyToken(token);
     }
-    getStats() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const [userStats, sessionStats, healthStats] = yield Promise.all([
-                this.userService.getUserStats(),
-                this.authService.getSessionStats(),
-                this.getHealthStatus(),
-            ]);
-            return {
-                users: userStats,
-                sessions: sessionStats,
-                health: healthStats,
-            };
-        });
+    async getStats() {
+        const [userStats, sessionStats, healthStats] = await Promise.all([
+            this.userService.getUserStats(),
+            this.authService.getSessionStats(),
+            this.getHealthStatus(),
+        ]);
+        return {
+            users: userStats,
+            sessions: sessionStats,
+            health: healthStats,
+        };
     }
-    getHealthStatus() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return {
-                status: 'healthy',
-                uptime: process.uptime(),
-                version: '1.0.0',
-                environment: process.env['NODE_ENV'] || 'development',
-            };
-        });
+    async getHealthStatus() {
+        return {
+            status: 'healthy',
+            uptime: process.uptime(),
+            version: '1.0.0',
+            environment: process.env['NODE_ENV'] || 'development',
+        };
     }
     initializeUsersSync() {
         if (this.config.users && this.config.users.length > 0) {

@@ -1,15 +1,6 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createRoleRoutes = void 0;
+exports.createRoleRoutes = createRoleRoutes;
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 function createRoleRoutes(userService, authService, webhookService, auditService) {
@@ -116,24 +107,23 @@ function createRoleRoutes(userService, authService, webhookService, auditService
     defaultRoles.forEach((role) => roles.set(role.name, role));
     defaultPermissions.forEach((permission) => permissions.set(permission.name, permission));
     // Middleware to verify admin access
-    const requireAdmin = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-        var _a;
+    const requireAdmin = async (req, res, next) => {
         try {
-            const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+            const token = req.headers.authorization?.replace('Bearer ', '');
             if (!token) {
                 return res.status(401).json({
                     success: false,
                     error: 'No token provided',
                 });
             }
-            const user = yield authService.verifyToken(token);
+            const user = await authService.verifyToken(token);
             if (!user) {
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid token',
                 });
             }
-            const isAdmin = yield userService.hasRole(user.id, 'admin');
+            const isAdmin = await userService.hasRole(user.id, 'admin');
             if (!isAdmin) {
                 return res.status(403).json({
                     success: false,
@@ -149,9 +139,9 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: 'Authentication failed',
             });
         }
-    });
+    };
     // Get all roles
-    router.get('/', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get('/', async (req, res) => {
         try {
             const rolesList = Array.from(roles.values());
             res.json({
@@ -165,9 +155,9 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: 'Failed to get roles',
             });
         }
-    }));
+    });
     // Get role by name
-    router.get('/:name', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get('/:name', async (req, res) => {
         try {
             const { name } = req.params;
             const role = roles.get(name);
@@ -188,13 +178,13 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: 'Failed to get role',
             });
         }
-    }));
+    });
     // Create role (admin only)
     router.post('/', requireAdmin, [
         (0, express_validator_1.body)('name').isLength({ min: 1, max: 50 }),
         (0, express_validator_1.body)('description').isLength({ min: 1, max: 200 }),
         (0, express_validator_1.body)('permissions').isArray(),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -231,7 +221,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
             roles.set(name, role);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'role.created',
                     resource: 'roles',
                     details: { roleName: name, success: true },
@@ -251,12 +241,12 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: error.message || 'Failed to create role',
             });
         }
-    }));
+    });
     // Update role (admin only)
     router.put('/:name', requireAdmin, [
         (0, express_validator_1.body)('description').optional().isLength({ min: 1, max: 200 }),
         (0, express_validator_1.body)('permissions').optional().isArray(),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -286,11 +276,16 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                     }
                 }
             }
-            const updatedRole = Object.assign(Object.assign({}, role), { description: description || role.description, permissions: rolePermissions || role.permissions, updatedAt: new Date() });
+            const updatedRole = {
+                ...role,
+                description: description || role.description,
+                permissions: rolePermissions || role.permissions,
+                updatedAt: new Date(),
+            };
             roles.set(name, updatedRole);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'role.updated',
                     resource: 'roles',
                     details: { roleName: name, success: true },
@@ -310,9 +305,9 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: error.message || 'Failed to update role',
             });
         }
-    }));
+    });
     // Delete role (admin only)
-    router.delete('/:name', requireAdmin, (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.delete('/:name', requireAdmin, async (req, res) => {
         try {
             const { name } = req.params;
             // Check if role exists
@@ -323,7 +318,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 });
             }
             // Check if role is in use
-            const users = yield userService.getAllUsers();
+            const users = await userService.getAllUsers();
             const usersWithRole = users.filter((user) => user.roles.includes(name));
             if (usersWithRole.length > 0) {
                 return res.status(409).json({
@@ -334,7 +329,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
             roles.delete(name);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'role.deleted',
                     resource: 'roles',
                     details: { roleName: name, success: true },
@@ -354,9 +349,9 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: 'Failed to delete role',
             });
         }
-    }));
+    });
     // Get all permissions
-    router.get('/permissions/list', (req, res) => __awaiter(this, void 0, void 0, function* () {
+    router.get('/permissions/list', async (req, res) => {
         try {
             const permissionsList = Array.from(permissions.values());
             res.json({
@@ -370,14 +365,14 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: 'Failed to get permissions',
             });
         }
-    }));
+    });
     // Create permission (admin only)
     router.post('/permissions/create', requireAdmin, [
         (0, express_validator_1.body)('name').isLength({ min: 1, max: 50 }),
         (0, express_validator_1.body)('description').isLength({ min: 1, max: 200 }),
         (0, express_validator_1.body)('resource').isLength({ min: 1, max: 50 }),
         (0, express_validator_1.body)('action').isLength({ min: 1, max: 50 }),
-    ], (req, res) => __awaiter(this, void 0, void 0, function* () {
+    ], async (req, res) => {
         try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
@@ -405,7 +400,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
             permissions.set(name, permission);
             // Log audit event
             if (auditService) {
-                yield auditService.log({
+                await auditService.log({
                     action: 'permission.created',
                     resource: 'roles',
                     details: { permissionName: name, success: true },
@@ -425,8 +420,7 @@ function createRoleRoutes(userService, authService, webhookService, auditService
                 error: error.message || 'Failed to create permission',
             });
         }
-    }));
+    });
     return router;
 }
-exports.createRoleRoutes = createRoleRoutes;
 //# sourceMappingURL=roles.js.map

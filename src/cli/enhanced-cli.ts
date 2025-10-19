@@ -462,7 +462,7 @@ export class EnhancedMockAuthCLI {
     this.ui.showInfo('Migration Tools - Choose your production provider');
 
     const provider = await this.ui.selectMigrationProvider();
-    const outputPath = './src/auth';
+    const outputPath = './dist/auth';
 
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath, { recursive: true });
@@ -482,7 +482,7 @@ export class EnhancedMockAuthCLI {
   private async handleBuilder(): Promise<void> {
     this.ui.showInfo('Launching MockAuth Visual Builder...');
 
-    const builder = spawn('node', ['src/web-builder/server.js'], {
+    const builder = spawn('node', ['dist/web-builder/server.js'], {
       stdio: 'inherit',
     });
 

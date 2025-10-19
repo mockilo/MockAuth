@@ -1,38 +1,29 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createEmailService = exports.EmailService = void 0;
+exports.EmailService = void 0;
+exports.createEmailService = createEmailService;
 class EmailService {
     constructor(config) {
         this.config = config;
         // Mock email service for development
         this.transporter = {
-            sendMail: (options) => __awaiter(this, void 0, void 0, function* () {
+            sendMail: async (options) => {
                 console.log('📧 Mock Email Sent:', {
                     to: options.to,
                     subject: options.subject,
                     from: options.from,
                 });
                 return { messageId: 'mock-message-id' };
-            }),
+            },
         };
     }
-    sendPasswordResetEmail(user, resetToken) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const resetUrl = `${process.env.BASE_URL || 'http://localhost:3001'}/reset-password?token=${resetToken}`;
-            const mailOptions = {
-                from: this.config.from,
-                to: user.email,
-                subject: 'Password Reset Request - MockAuth',
-                html: `
+    async sendPasswordResetEmail(user, resetToken) {
+        const resetUrl = `${process.env.BASE_URL || 'http://localhost:3001'}/reset-password?token=${resetToken}`;
+        const mailOptions = {
+            from: this.config.from,
+            to: user.email,
+            subject: 'Password Reset Request - MockAuth',
+            html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Password Reset Request</h2>
           <p>Hello ${user.username},</p>
@@ -44,24 +35,22 @@ class EmailService {
           <p style="color: #666; font-size: 12px;">This is a test email from MockAuth - a development authentication simulator.</p>
         </div>
       `,
-            };
-            try {
-                yield this.transporter.sendMail(mailOptions);
-            }
-            catch (error) {
-                console.warn('Failed to send password reset email:', error.message);
-                // In development, we might want to log the reset token instead
-                console.log(`Password reset token for ${user.email}: ${resetToken}`);
-            }
-        });
+        };
+        try {
+            await this.transporter.sendMail(mailOptions);
+        }
+        catch (error) {
+            console.warn('Failed to send password reset email:', error.message);
+            // In development, we might want to log the reset token instead
+            console.log(`Password reset token for ${user.email}: ${resetToken}`);
+        }
     }
-    sendWelcomeEmail(user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const mailOptions = {
-                from: this.config.from,
-                to: user.email,
-                subject: 'Welcome to MockAuth!',
-                html: `
+    async sendWelcomeEmail(user) {
+        const mailOptions = {
+            from: this.config.from,
+            to: user.email,
+            subject: 'Welcome to MockAuth!',
+            html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Welcome to MockAuth!</h2>
           <p>Hello ${user.username},</p>
@@ -76,22 +65,20 @@ class EmailService {
           <p style="color: #666; font-size: 12px;">This is a test email from MockAuth - a development authentication simulator.</p>
         </div>
       `,
-            };
-            try {
-                yield this.transporter.sendMail(mailOptions);
-            }
-            catch (error) {
-                console.warn('Failed to send welcome email:', error.message);
-            }
-        });
+        };
+        try {
+            await this.transporter.sendMail(mailOptions);
+        }
+        catch (error) {
+            console.warn('Failed to send welcome email:', error.message);
+        }
     }
-    sendMFAEnabledEmail(user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const mailOptions = {
-                from: this.config.from,
-                to: user.email,
-                subject: 'MFA Enabled - MockAuth',
-                html: `
+    async sendMFAEnabledEmail(user) {
+        const mailOptions = {
+            from: this.config.from,
+            to: user.email,
+            subject: 'MFA Enabled - MockAuth',
+            html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Multi-Factor Authentication Enabled</h2>
           <p>Hello ${user.username},</p>
@@ -101,14 +88,13 @@ class EmailService {
           <p style="color: #666; font-size: 12px;">This is a test email from MockAuth - a development authentication simulator.</p>
         </div>
       `,
-            };
-            try {
-                yield this.transporter.sendMail(mailOptions);
-            }
-            catch (error) {
-                console.warn('Failed to send MFA enabled email:', error.message);
-            }
-        });
+        };
+        try {
+            await this.transporter.sendMail(mailOptions);
+        }
+        catch (error) {
+            console.warn('Failed to send MFA enabled email:', error.message);
+        }
     }
     // For development/testing - create a mock email service
     static createMockEmailService() {
@@ -128,5 +114,4 @@ exports.EmailService = EmailService;
 function createEmailService(config) {
     return new EmailService(config);
 }
-exports.createEmailService = createEmailService;
 //# sourceMappingURL=EmailService.js.map

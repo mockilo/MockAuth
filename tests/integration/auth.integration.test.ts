@@ -7,8 +7,8 @@ describe('Authentication Integration Tests', () => {
 
   beforeAll(async () => {
     auth = new MockAuth({
-      port: 3001,
-      baseUrl: 'http://localhost:3001',
+      port: 3002, // Use different port to avoid conflicts
+      baseUrl: 'http://localhost:3002',
       jwtSecret: 'test-secret-key-for-integration-tests-32-chars-minimum',
       users: [
         {
@@ -260,5 +260,11 @@ describe('Authentication Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('Logged out');
     });
+  });
+
+  afterAll(async () => {
+    if (auth) {
+      await auth.stop();
+    }
   });
 });

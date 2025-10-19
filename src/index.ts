@@ -272,8 +272,8 @@ export class MockAuth {
 
   private setupWebInterface(): void {
     // Serve your existing HTML files from web-builder directory
-    // The web-builder files are in the source directory, not dist
-    const webBuilderPath = path.join(__dirname, '..', 'src', 'web-builder');
+    // The web-builder files are copied to dist during build
+    const webBuilderPath = path.join(__dirname, 'web-builder');
 
     // Serve static files (JS, CSS, images) from web-builder directory
     this.app.use(express.static(webBuilderPath));
